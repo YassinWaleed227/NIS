@@ -1,0 +1,47 @@
+$(document).ready(function() {
+  function loadTrucks() {
+    $.ajax({
+      type: 'GET',
+      url: '/api/v1/trucks/view',
+      success: function(trucks) {
+        renderTrucks(trucks);
+      },
+      error: function(err) {
+        let msg = 'Could not load trucks';
+        if (err && err.responseText) msg = err.responseText;
+        if (err && err.status === 403) msg = 'Only customers can view available trucks';
+        $('#trucksList').html('<div class="alert alert-warning">' + msg + '</div>');
+      }
+    });
+  }
+
+  function renderTrucks(trucks) {
+    if (!trucks || trucks.length === 0) {
+      $('#trucksList').html('<p>No available trucks.</p>');
+      return;
+    }
+
+    let html = '<div class="row">';
+    trucks.forEach(function(t) {
+      html += '<div class="col-md-4" style="margin-bottom: 15px;">' +
+        '<div class="panel panel-default">' +
+        '<div class="panel-heading"><strong>' + escapeHtml(t.truckName) + '</strong></div>' +
+        '<div class="panel-body">' +
+        (t.truckLogo ? '<img src="' + escapeHtml(t.truckLogo) + '" style="max-width:100%" />' : '') +
+        '<p>Status: ' + escapeHtml(t.truckStatus) + '</p>' +
+        '<p>Order Status: ' + escapeHtml(t.orderStatus) + '</p>' +
+        '<a class="btn btn-primary" href="/menu?truckId=' + t.truckId + '">View Menu</a>' +
+        '</div></div></div>';
+    });
+    html += '</div>';
+
+    $('#trucksList').html(html);
+  }
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/[&"'<>]/g, function (m) { return ({'&':'&amp;','"':'&quot;',"'":"&#39;",'<':'&lt;','>':'&gt;'})[m]; });
+  }
+
+  loadTrucks();
+});
