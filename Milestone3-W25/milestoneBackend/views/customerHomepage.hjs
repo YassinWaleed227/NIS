@@ -12,6 +12,7 @@
     <ul class="nav navbar-nav">
       <li><a href="/dashboard">Home</a></li>
       <li><a href="/trucks">Trucks</a></li>
+      <li><a href="/cart">Cart</a></li>
       <li><a href="/">Logout</a></li>
     </ul>
     </nav>

@@ -11,7 +11,7 @@ $(document).ready(function() {
       }
       $.ajax({
         type: 'GET',
-        url: '/api/v1/menuItem/truck/' + encodeURIComponent(truckId),
+        url: '/api/v1/menu-item/truck/' + encodeURIComponent(truckId),
         success: function(items) {
           renderMenuItems(items, true);
         },
@@ -107,20 +107,23 @@ $(document).ready(function() {
     if (customerView) {
       $('.add-to-cart').click(async function () {
         const id = $(this).data('id');
-        const qty = $(this).closest('.input-group').find('.cart-quantity').val() || 1;
+        const qty = parseInt($(this).closest('.input-group').find('.cart-quantity').val()) || 1;
+        const row = $(this).closest('tr');
+        const price = parseFloat(row.find('td:eq(3)').text());
         try {
           const res = await fetch('/api/v1/cart/new', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ itemId: id, quantity: qty })
+            body: JSON.stringify({ itemId: parseInt(id), quantity: qty, price: price })
           });
-          const text = await res.text();
-          alert(text);
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Could not add to cart');
+          alert(data.message || 'Item added to cart successfully');
           // refresh cart UI if present
           if (window.loadCart) window.loadCart();
         } catch (err) {
           console.error(err);
-          alert('Could not add to cart');
+          alert('Error: ' + err.message);
         }
       });
     }

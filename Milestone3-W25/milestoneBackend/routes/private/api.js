@@ -45,7 +45,7 @@ function handlePrivateBackendApi(app) {
         createdAt: new Date()
       });
 
-      return res.status(200).json({ 
+      return res.status(201).json({ 
         message: 'menu item was created successfully' 
       });
     } catch (err) {
@@ -192,7 +192,7 @@ function handlePrivateBackendApi(app) {
   app.get('/api/v1/trucks/view', async (req, res) => {
     try {
       const trucks = await db('FoodTruck.Trucks')
-        .where('status', 'available')
+        .where('truckStatus', 'available')
         .orderBy('truckId', 'asc');
 
       return res.status(200).json(trucks);
@@ -253,7 +253,7 @@ function handlePrivateBackendApi(app) {
       }
 
       // Check if cart is empty or has items from the same truck
-      const existingCartItems = await db('FoodTruck.Cart')
+      const existingCartItems = await db('FoodTruck.Carts')
         .where({ userId: user.userId })
         .select('itemId');
 
@@ -274,12 +274,11 @@ function handlePrivateBackendApi(app) {
       }
 
       // Add item to cart
-      await db('FoodTruck.Cart').insert({
+      await db('FoodTruck.Carts').insert({
         userId: user.userId,
         itemId,
         quantity,
-        price,
-        createdAt: new Date()
+        price
       });
 
       return res.status(200).json({ 
@@ -301,19 +300,19 @@ function handlePrivateBackendApi(app) {
         return res.status(403).json({ error: 'Only customers can view their cart' });
       }
 
-      const cartItems = await db('FoodTruck.Cart')
+      const cartItems = await db('FoodTruck.Carts')
         .where({ userId: user.userId })
-        .join('FoodTruck.MenuItems', 'Cart.itemId', 'MenuItems.itemId')
+        .join('FoodTruck.MenuItems', 'Carts.itemId', 'MenuItems.itemId')
         .select(
-          'Cart.cartId',
-          'Cart.itemId',
+          'Carts.cartId',
+          'Carts.itemId',
           'MenuItems.name',
-          'Cart.quantity',
-          'Cart.price',
+          'Carts.quantity',
+          'Carts.price',
           'MenuItems.description',
           'MenuItems.category'
         )
-        .orderBy('Cart.cartId', 'asc');
+        .orderBy('Carts.cartId', 'asc');
 
       return res.status(200).json(cartItems);
     } catch (err) {
@@ -335,7 +334,7 @@ function handlePrivateBackendApi(app) {
       const cartId = req.params.cartId;
       
       // Delete only if the cart item belongs to the user
-      const result = await db('FoodTruck.Cart')
+      const result = await db('FoodTruck.Carts')
         .where({
           cartId,
           userId: user.userId
@@ -373,7 +372,7 @@ function handlePrivateBackendApi(app) {
       }
 
       // Update only if the cart item belongs to the user
-      const result = await db('FoodTruck.Cart')
+      const result = await db('FoodTruck.Carts')
         .where({
           cartId,
           userId: user.userId
@@ -414,14 +413,14 @@ function handlePrivateBackendApi(app) {
       }
 
       // Get cart items
-      const cartItems = await trx('FoodTruck.Cart')
+      const cartItems = await trx('FoodTruck.Carts')
         .where({ userId: user.userId })
-        .join('FoodTruck.MenuItems', 'Cart.itemId', 'MenuItems.itemId')
+        .join('FoodTruck.MenuItems', 'Carts.itemId', 'MenuItems.itemId')
         .select(
-          'Cart.cartId',
-          'Cart.itemId',
-          'Cart.quantity',
-          'Cart.price',
+          'Carts.cartId',
+          'Carts.itemId',
+          'Carts.quantity',
+          'Carts.price',
           'MenuItems.truckId'
         );
 
@@ -469,7 +468,7 @@ function handlePrivateBackendApi(app) {
       await trx('FoodTruck.OrderItems').insert(orderItems);
 
       // Clear the cart
-      await trx('FoodTruck.Cart')
+      await trx('FoodTruck.Carts')
         .where({ userId: user.userId })
         .del();
 
@@ -740,12 +739,12 @@ function handlePrivateBackendApi(app) {
       // Get all orders for this truck
       const orders = await db('FoodTruck.Orders')
         .where('truckId', truck.truckId)
-        .join('Users', 'Orders.userId', 'Users.userId')
+        .join('FoodTruck.Users as u', 'Orders.userId', 'u.userId')
         .select(
           'Orders.*',
-          'Users.firstName',
-          'Users.lastName',
-          'Users.email'
+          'u.firstName as firstName',
+          'u.lastName as lastName',
+          'u.email as email'
         )
         .orderBy('orderDate', 'desc');
 
@@ -840,13 +839,13 @@ function handlePrivateBackendApi(app) {
           orderId: req.params.orderId,
           truckId: truck.truckId
         })
-        .join('Users', 'Orders.userId', 'Users.userId')
+        .join('FoodTruck.Users as u', 'Orders.userId', 'u.userId')
         .select(
           'Orders.*',
-          'Users.firstName',
-          'Users.lastName',
-          'Users.email',
-          'Users.phone'
+          'u.firstName as firstName',
+          'u.lastName as lastName',
+          'u.email as email',
+          'u.phone as phone'
         )
         .first();
 

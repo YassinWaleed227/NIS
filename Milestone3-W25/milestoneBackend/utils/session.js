@@ -1,21 +1,12 @@
 const db = require('../connectors/db');
 
 function getSessionToken(req) {
-  
-  //console.log("cookie",req.headers.cookie);
-  if(!req.headers.cookie){
-    return null
-  }
-  const cookies = req.headers.cookie.split(';')
-    .map(function (cookie) { return cookie.trim() })
-    .filter(function (cookie) { return cookie.includes('session_token') })
-    .join('');
-
-  const sessionToken = cookies.slice('session_token='.length);
-  if (!sessionToken) {
-    return null;
-  }
-  return sessionToken;
+  if (!req.headers || !req.headers.cookie) return null;
+  const cookies = req.headers.cookie.split(';').map(c => c.trim());
+  const tokenCookie = cookies.find(c => c.startsWith('session_token='));
+  if (!tokenCookie) return null;
+  const parts = tokenCookie.split('=');
+  return parts.length > 1 ? parts.slice(1).join('=') : null;
 }
 
 async function getUser(req) {

@@ -119,7 +119,7 @@ function handlePrivateFrontEndView(app) {
     // Testing Axios route
     app.get('/testingAxios', async (req, res) => {
         try {
-            const result = await axios.get(`http://localhost:${process.env.PORT || 3001}/test`);
+            const result = await axios.get(`http://localhost:${process.env.PORT || 3000}/test`);
             return res.status(200).send(result.data);
         } catch (error) {
             console.error('Axios error:', error);

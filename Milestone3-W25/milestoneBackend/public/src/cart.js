@@ -25,7 +25,7 @@ function renderCart(items) {
     let total = 0;
     const list = $('<ul class="list-group mb-2"></ul>');
     items.forEach(it => {
-        const lineTotal = Number(it.cartPrice) * Number(it.quantity);
+        const lineTotal = Number(it.price) * Number(it.quantity);
         total += lineTotal;
         const li = $(`<li class="list-group-item d-flex justify-content-between align-items-center">
             <div>
