@@ -1,67 +1,75 @@
 const { v4 } = require('uuid');
 const db = require('../../connectors/db');
 const axios = require('axios');
+const bcrypt = require('bcrypt');
 
 function handlePublicBackendApi(app) {
 
     // Register HTTP endpoint to create new user
     app.post('/api/v1/user', async function(req, res) {
-      const { name, email, password } = req.body;
+      const { name, email, password, birthDate } = req.body;
 
       // Validate required fields
       if (!name) {
-        return res.status(400).send('Name is required');
+        return res.status(400).json({ error: 'Name is required' });
       }
       if (!email) {
-        return res.status(400).send('Email is required');
+        return res.status(400).json({ error: 'Email is required' });
       }
       if (!password) {
-        return res.status(400).send('Password is required');
+        return res.status(400).json({ error: 'Password is required' });
       }
 
       // Check if user already exists in the system
       const userExists = await db.select('*').from('FoodTruck.Users').where('email', email);
       if (userExists.length > 0) {
-        return res.status(400).send('user exists');
+        return res.status(400).json({ error: 'user exists' });
       }
       
       try {
+        // Hash the password with bcrypt
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
         const newUser = {
           name,
           email,
-          password,
-          role: req.body.role || 'customer'
+          password: hashedPassword,
+          role: req.body.role || 'customer',
+          birthDate: birthDate || null
         };
-        const user = await db('FoodTruck.Users').insert(newUser).returning('*');
-        return res.status(200).json(user);
+        await db('FoodTruck.Users').insert(newUser);
+        return res.status(201).json({ message: 'User registered successfully' });
       } catch (e) {
-        console.log(e.message);
-        return res.status(400).send('Could not register user');
+        console.log('Registration error:', e.message);
+        return res.status(400).json({ error: 'Could not register user' });
       }
     });
 
-    // Register HTTP endpoint to create new user
+    // Login HTTP endpoint
     app.post('/api/v1/user/login', async function(req, res) {
       // get users credentials from the JSON body
       const { email, password } = req.body
       if (!email) {
         // If the email is not present, return an HTTP unauthorized code
-        return res.status(400).send('email is required');
+        return res.status(400).json({ error: 'email is required' });
       }
       if (!password) {
         // If the password is not present, return an HTTP unauthorized code
-        return res.status(400).send('Password is required');
+        return res.status(400).json({ error: 'Password is required' });
       }
 
       // validate the provided password against the password in the database
       // if invalid, send an unauthorized code
       let user = await db.select('*').from('FoodTruck.Users').where('email', email);
       if (user.length == 0) {
-        return res.status(400).send('user does not exist');
+        return res.status(400).json({ error: 'user does not exist' });
       }
       user = user[0];
-      if (user.password !== password) {
-        return res.status(400).send('Password does not match');
+      
+      // Compare hashed password using bcrypt
+      const passwordMatch = await bcrypt.compare(password, user.password);
+      if (!passwordMatch) {
+        return res.status(400).json({ error: 'Password does not match' });
       }
 
       // set the expiry time as 30 minutes after the current time
@@ -72,7 +80,7 @@ function handlePublicBackendApi(app) {
       const session = {
         userId: user.userId,
         token,
-        expiresAt,
+        expiresAt
       };
       try {
         await db('FoodTruck.Sessions').insert(session);
@@ -81,7 +89,7 @@ function handlePublicBackendApi(app) {
         return res.status(200).json({ message: 'Login successful', token });
       } catch (e) {
         console.log(e.message);
-        return res.status(400).send('Could not login');
+        return res.status(400).json({ error: 'Could not login' });
       }
     });
 

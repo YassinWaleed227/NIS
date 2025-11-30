@@ -5,7 +5,7 @@ function handlePrivateBackendApi(app) {
   // Test endpoint
   app.get('/test', async (req, res) => {
     try {
-      return res.status(200).json({ message: 'successful connection' });
+      return res.status(200).json({ message: 'Successful connection' });
     } catch (err) {
       console.error('Test endpoint error:', err.message);
       return res.status(500).json({ error: 'Internal server error' });
@@ -46,7 +46,7 @@ function handlePrivateBackendApi(app) {
       });
 
       return res.status(201).json({ 
-        message: 'menu item was created successfully' 
+        message: 'Menu item was created successfully' 
       });
     } catch (err) {
       console.error('Error creating menu item:', err);
@@ -146,7 +146,7 @@ function handlePrivateBackendApi(app) {
       }
 
       return res.status(200).json({ 
-        message: 'menu item updated successfully' 
+        message: 'Menu item updated successfully' 
       });
     } catch (err) {
       console.error('Error updating menu item:', err);
@@ -178,7 +178,7 @@ function handlePrivateBackendApi(app) {
       }
 
       return res.status(200).json({ 
-        message: 'menu item deleted successfully' 
+        message: 'Menu item deleted successfully' 
       });
     } catch (err) {
       console.error('Error deleting menu item:', err);
@@ -240,6 +240,12 @@ function handlePrivateBackendApi(app) {
         return res.status(400).json({ error: 'itemId, quantity, and price are required' });
       }
 
+      // Validate quantity is positive
+      const parsedQuantity = parseInt(quantity);
+      if (isNaN(parsedQuantity) || parsedQuantity < 1) {
+        return res.status(400).json({ error: 'Quantity must be at least 1' });
+      }
+
       // Check if the item exists and is available
       const menuItem = await db('FoodTruck.MenuItems')
         .where({ 
@@ -277,12 +283,12 @@ function handlePrivateBackendApi(app) {
       await db('FoodTruck.Carts').insert({
         userId: user.userId,
         itemId,
-        quantity,
+        quantity: parsedQuantity,
         price
       });
 
       return res.status(200).json({ 
-        message: 'item added to cart successfully' 
+        message: 'Item added to cart successfully' 
       });
     } catch (err) {
       console.error('Error adding item to cart:', err);
@@ -346,7 +352,7 @@ function handlePrivateBackendApi(app) {
       }
 
       return res.status(200).json({ 
-        message: 'item removed from cart successfully' 
+        message: 'Item removed from cart successfully' 
       });
     } catch (err) {
       console.error('Error removing item from cart:', err);
@@ -384,7 +390,7 @@ function handlePrivateBackendApi(app) {
       }
 
       return res.status(200).json({ 
-        message: 'cart updated successfully' 
+        message: 'Cart updated successfully' 
       });
     } catch (err) {
       console.error('Error updating cart:', err);
@@ -446,7 +452,7 @@ function handlePrivateBackendApi(app) {
       }, 0);
 
       // Create order
-      const [order] = await trx('FoodTruck.Orders')
+      const orderResult = await trx('FoodTruck.Orders')
         .insert({
           userId: user.userId,
           truckId,
@@ -454,8 +460,10 @@ function handlePrivateBackendApi(app) {
           orderStatus: 'pending',
           scheduledPickupTime: new Date(scheduledPickupTime),
           orderDate: new Date()
-        })
-        .returning('*');
+        });
+      
+      // Get the inserted order ID
+      const order = { orderId: orderResult[0] };
 
       // Create order items
       const orderItems = cartItems.map(item => ({
@@ -475,7 +483,7 @@ function handlePrivateBackendApi(app) {
       await trx.commit();
       
       return res.status(200).json({ 
-        message: 'order placed successfully',
+        message: 'Order placed successfully',
         orderId: order.orderId
       });
     } catch (err) {
@@ -505,24 +513,21 @@ function handlePrivateBackendApi(app) {
       }
 
       // Soft delete by setting status to 'unavailable'
-      const [deletedItem] = await db('FoodTruck.MenuItems')
+      const result = await db('FoodTruck.MenuItems')
         .where({ 
           itemId,
           truckId
         })
         .update({ 
-          status: 'unavailable',
-          updatedAt: new Date()
-        })
-        .returning('*');
+          status: 'unavailable'
+        });
 
-      if (!deletedItem) {
+      if (result === 0) {
         return res.status(404).json({ error: 'Menu item not found' });
       }
 
       return res.status(200).json({
-        message: 'Menu item deleted successfully',
-        data: deletedItem
+        message: 'Menu item deleted successfully'
       });
     } catch (err) {
       console.error('Error deleting menu item:', err);
@@ -558,20 +563,18 @@ function handlePrivateBackendApi(app) {
       }
 
       // Create new truck
-      const [newTruck] = await db('FoodTruck.Trucks')
+      await db('FoodTruck.Trucks')
         .insert({
           truckName,
           truckLogo: truckLogo || null,
           ownerId: user.userId,
-          status: 'available',
+          truckStatus: 'available',
           orderStatus: 'available',
           createdAt: new Date()
-        })
-        .returning('*');
+        });
 
       return res.status(201).json({
-        message: 'Truck created successfully',
-        data: newTruck
+        message: 'Truck created successfully'
       });
     } catch (err) {
       console.error('Error creating truck:', err);
@@ -621,8 +624,7 @@ function handlePrivateBackendApi(app) {
       const [updatedTruck] = await db('FoodTruck.Trucks')
         .where('ownerId', user.userId)
         .update({ 
-          orderStatus,
-          updatedAt: new Date() 
+          orderStatus
         })
         .returning('*');
 
@@ -772,7 +774,7 @@ function handlePrivateBackendApi(app) {
         return res.status(400).json({ error: 'Invalid order status' });
       }
 
-      // Check if the truck exists and is owned by the user
+      // Get the truck owned by this user
       const truck = await db('FoodTruck.Trucks')
         .where('ownerId', user.userId)
         .first();
@@ -783,8 +785,7 @@ function handlePrivateBackendApi(app) {
 
       // Update the order status
       const updates = { 
-        orderStatus,
-        updatedAt: new Date() 
+        orderStatus
       };
 
       // Add estimated pickup time if provided

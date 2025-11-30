@@ -14,6 +14,7 @@ $(document).ready(function() {
       type: 'POST',
       url: '/api/v1/truck/new',
       contentType: 'application/json',
+      dataType: 'json',
       data: JSON.stringify(data),
       success: function(resp) {
         alert('Truck created successfully');
@@ -21,8 +22,12 @@ $(document).ready(function() {
         location.reload();
       },
       error: function(err) {
-        const msg = err && err.responseText ? err.responseText : 'Could not create truck';
-        alert('Error: ' + msg);
+        try {
+          const data = JSON.parse(err.responseText);
+          alert(data.error || 'Could not create truck');
+        } catch (e) {
+          alert('Could not create truck');
+        }
       }
     });
   });

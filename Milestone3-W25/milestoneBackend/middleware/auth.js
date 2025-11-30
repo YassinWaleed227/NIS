@@ -19,7 +19,8 @@ async function authMiddleware(req, res, next) {
     return res.redirect(302, '/');
   }
 
-  if (new Date() > userSession.expiresAt) {
+  // Check if session has expired
+  if (new Date() > new Date(userSession.expiresAt)) {
     if (req.path && req.path.startsWith('/api/')) {
       return res.status(401).json({ error: 'Session expired' });
     }

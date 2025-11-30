@@ -1,18 +1,45 @@
 $(document).ready(function() {
   function loadTrucks() {
-    $.ajax({
-      type: 'GET',
-      url: '/api/v1/trucks/view',
-      success: function(trucks) {
-        renderTrucks(trucks);
-      },
-      error: function(err) {
-        let msg = 'Could not load trucks';
-        if (err && err.responseText) msg = err.responseText;
-        if (err && err.status === 403) msg = 'Only customers can view available trucks';
-        $('#trucksList').html('<div class="alert alert-warning">' + msg + '</div>');
-      }
-    });
+    // If truck owner, load only their truck
+    if (typeof userRole !== 'undefined' && userRole === 'truckOwner') {
+      $.ajax({
+        type: 'GET',
+        url: '/api/v1/truck/myTruck',
+        success: function(truck) {
+          renderTrucks([truck]);
+        },
+        error: function(err) {
+          let msg = 'Could not load your truck';
+          try {
+            const data = JSON.parse(err.responseText);
+            msg = data.error || msg;
+          } catch (e) {
+            msg = msg;
+          }
+          $('#trucksList').html('<div class="alert alert-warning">' + msg + '</div>');
+        }
+      });
+    } else {
+      // If customer, load all available trucks
+      $.ajax({
+        type: 'GET',
+        url: '/api/v1/trucks/view',
+        success: function(trucks) {
+          renderTrucks(trucks);
+        },
+        error: function(err) {
+          let msg = 'Could not load trucks';
+          try {
+            const data = JSON.parse(err.responseText);
+            msg = data.error || msg;
+          } catch (e) {
+            msg = msg;
+          }
+          if (err && err.status === 403) msg = 'Only customers can view available trucks';
+          $('#trucksList').html('<div class="alert alert-warning">' + msg + '</div>');
+        }
+      });
+    }
   }
 
   function renderTrucks(trucks) {

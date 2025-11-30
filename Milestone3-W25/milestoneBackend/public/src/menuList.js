@@ -16,7 +16,13 @@ $(document).ready(function() {
           renderMenuItems(items, true);
         },
         error: function(err) {
-          const msg = err && err.responseText ? err.responseText : 'Could not load menu items';
+          let msg = 'Could not load menu items';
+          try {
+            const data = JSON.parse(err.responseText);
+            msg = data.error || msg;
+          } catch (e) {
+            msg = msg;
+          }
           $('#menuItemsList').html('<div class="alert alert-danger">' + msg + '</div>');
         }
       });
@@ -34,7 +40,13 @@ $(document).ready(function() {
         renderMenuItems(items, false);
       },
       error: function(err) {
-        const msg = err && err.responseText ? err.responseText : 'Could not load menu items';
+        let msg = 'Could not load menu items';
+        try {
+          const data = JSON.parse(err.responseText);
+          msg = data.error || msg;
+        } catch (e) {
+          msg = msg;
+        }
         $('#menuItemsList').html('<div class="alert alert-danger">' + msg + '</div>');
       }
     });
@@ -123,7 +135,7 @@ $(document).ready(function() {
           if (window.loadCart) window.loadCart();
         } catch (err) {
           console.error(err);
-          alert('Error: ' + err.message);
+          alert(err.message);
         }
       });
     }
@@ -133,13 +145,20 @@ $(document).ready(function() {
     $.ajax({
       type: 'DELETE',
       url: '/api/v1/menuItem/delete/' + itemId,
+      dataType: 'json',
       success: function(resp) {
-        alert(resp || 'menu item deleted successfully');
+        alert(resp.message || 'menu item deleted successfully');
         window.loadMenuItems();
       },
       error: function(err) {
-        const msg = err && err.responseText ? err.responseText : 'Could not delete menu item';
-        alert('Error: ' + msg);
+        let msg = 'Could not delete menu item';
+        try {
+          const data = JSON.parse(err.responseText);
+          msg = data.error || msg;
+        } catch (e) {
+          msg = msg;
+        }
+        alert(msg);
       }
     });
   }
@@ -150,13 +169,20 @@ $(document).ready(function() {
       url: '/api/v1/menuItem/edit/' + itemId,
       contentType: 'application/json',
       data: JSON.stringify(body),
+      dataType: 'json',
       success: function(resp) {
-        alert(resp || 'menu item updated successfully');
+        alert(resp.message || 'menu item updated successfully');
         window.loadMenuItems();
       },
       error: function(err) {
-        const msg = err && err.responseText ? err.responseText : 'Could not update menu item';
-        alert('Error: ' + msg);
+        let msg = 'Could not update menu item';
+        try {
+          const data = JSON.parse(err.responseText);
+          msg = data.error || msg;
+        } catch (e) {
+          msg = msg;
+        }
+        alert(msg);
       }
     });
   }

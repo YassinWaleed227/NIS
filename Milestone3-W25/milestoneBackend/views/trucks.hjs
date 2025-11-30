@@ -40,6 +40,9 @@
       <h3>Available Trucks</h3>
       <div id="trucksList">Loading...</div>
     </div>
+    <script>
+      var userRole = '{{ role }}';
+    </script>
     <script src="/src/truckList.js" type="text/javascript"></script>
   </body>
 </html>

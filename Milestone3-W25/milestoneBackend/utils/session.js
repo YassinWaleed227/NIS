@@ -14,11 +14,8 @@ async function getUser(req) {
   const sessionToken = getSessionToken(req);
   if (!sessionToken) {
     console.log("no session token is found");
-    // Do not attempt to use `res` here — utilities should return null and
-    // let middleware/routes handle redirects or 403 responses.
     return null;
   }
-
 
   const user = await db.select('*')
     .from({ s: 'FoodTruck.Sessions' })
@@ -26,18 +23,25 @@ async function getUser(req) {
     .innerJoin('FoodTruck.Users as u', 's.userId', 'u.userId')
     .first(); 
 
+  // Check if user session exists
+  if (!user) {
+    console.log("User session not found");
+    return null;
+  }
+
   if(user.role == "truckOwner"){
     const TruckRecord = await db.select('*')
-    .from({ u: 'FoodTruck.Trucks' })
-    .where('ownerId', user.userId)
+      .from('FoodTruck.Trucks')
+      .where('ownerId', user.userId)
+      .first();
+    
     // has no FoodTrucks
-    if(TruckRecord.length == 0){
+    if(!TruckRecord){
       console.log(`This ${user.name} has no owned trucks despite his role`);
       console.log('user =>', user)
       return user; 
     }else{
-      const firstRecord = TruckRecord[0];
-      const truckOwnerUser =  {...user, ...firstRecord}
+      const truckOwnerUser = {...user, ...TruckRecord}
       console.log('truck Owner user =>', truckOwnerUser)
       return truckOwnerUser;
     }

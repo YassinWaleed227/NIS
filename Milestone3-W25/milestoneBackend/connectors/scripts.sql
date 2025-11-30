@@ -26,7 +26,7 @@ create table if not exists "FoodTruck"."Users"(
 "email" text not null unique,
 "password" text not null,
 "role" text default 'customer',
-"birthDate" date default current_timestamp,
+"birthDate" date default current_date,
 "createdAt" timestamp default current_timestamp
 );
 
@@ -67,6 +67,7 @@ create table if not exists "FoodTruck"."Orders"(
 "totalPrice" numeric(10,2) not null,
 "scheduledPickupTime" timestamp,
 "estimatedEarliestPickup" timestamp,
+"orderDate" timestamp default current_timestamp,
 "createdAt" timestamp default current_timestamp,
 foreign key ("userId") references "FoodTruck"."Users"("userId") on delete cascade,
 foreign key ("truckId") references "FoodTruck"."Trucks"("truckId") on delete cascade

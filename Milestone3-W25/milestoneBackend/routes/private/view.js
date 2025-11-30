@@ -128,4 +128,4 @@ function handlePrivateFrontEndView(app) {
     });
 }
 
-module.exports = { handlePrivateFrontEndView };
+module.exports = { handlePrivateFrontEndView };   

@@ -19,7 +19,7 @@ function renderCart(items) {
     const panel = $('#cartPanel');
     panel.empty();
     if (!items || items.length === 0) {
-        panel.html('<p>Your cart is empty.</p>');
+        panel.html('<p>Your Cart is empty.</p>');
         return;
     }
     let total = 0;
@@ -54,13 +54,12 @@ function renderCart(items) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ quantity: qty })
             });
-            const text = await res.text();
-            if (!res.ok) throw new Error(text);
-            // show server success message as a popup
-            alert(text);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to update');
+            alert(data.message);
             loadCart();
         } catch (err) {
-            alert('Could not update quantity: ' + err.message);
+            alert(err.message);
         }
     });
 
@@ -68,13 +67,12 @@ function renderCart(items) {
         const cartId = $(this).data('cart-id');
         try {
             const res = await fetch('/api/v1/cart/delete/' + cartId, { method: 'DELETE' });
-            const text = await res.text();
-            if (!res.ok) throw new Error(text);
-            // show server success message exactly as required
-            alert(text);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to remove');
+            alert(data.message);
             loadCart();
         } catch (err) {
-            alert('Could not remove item: ' + err.message);
+            alert(err.message);
         }
     });
 }

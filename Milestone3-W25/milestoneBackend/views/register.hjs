@@ -30,14 +30,6 @@
           </div>
         </div>
 
-        <!-- Country -->
-        <div class="form-group">
-          <label for="country" class="col-sm-2 control-label">Country</label>
-          <div class="col-sm-10">
-              <input type="text" class="form-control" id="country" name="country" placeholder="Enter Country">
-          </div>
-        </div>
-
         <!-- Birth Date -->
         <div class="form-group">
           <label for="birthDate" class="col-sm-2 control-label">Birth Date</label>
@@ -86,7 +78,6 @@
       $('#register').click(function() {
         const data = {
           name: $('#name').val(),
-          country: $('#country').val(),
           birthDate: $('#birthDate').val(),
           email: $('#email').val(),
           password: $('#password').val(),
@@ -98,12 +89,18 @@
           type: 'POST',
           contentType: 'application/json',
           data: JSON.stringify(data),
+          dataType: 'json',
           success: function(res) {
-            alert('User registered successfully');
+            alert(res.message || 'User registered successfully');
             window.location.href = '/'; // redirect to login page
           },
-          error: function(err) {
-            alert(err.responseText);
+          error: function(xhr) {
+            try {
+              const data = xhr.responseJSON || JSON.parse(xhr.responseText);
+              alert(data.error);
+            } catch (e) {
+              alert(xhr.responseText || 'Unknown error occurred');
+            }
           }
         });
       });

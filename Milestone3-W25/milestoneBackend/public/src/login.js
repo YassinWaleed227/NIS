@@ -3,6 +3,11 @@ $(document).ready(function(){
       const email = $('#email').val();
       const password = $('#password').val();
 
+      if(!email || !password){
+          alert("Email and Password are required")
+          return;
+      }
+
       const data = {
         email,
         password,
@@ -11,17 +16,23 @@ $(document).ready(function(){
       $.ajax({
         type: "POST",
         url: '/api/v1/user/login',
-        data,
+        contentType: 'application/json',
+        dataType: 'json',
+        data: JSON.stringify(data),
         success: function(serverResponse) {
-          if(serverResponse) {
-            alert("login successfully");
-            location.href = '/dashboard';
-          }
+          alert(serverResponse.message || "Login successful");
+          // Add small delay to ensure cookie is set before redirect
+          setTimeout(function() {
+            window.location.href = '/dashboard';
+          }, 500);
         },
         error: function(errorResponse) {
-          if(errorResponse) {
-            alert(`User login error: ${errorResponse.responseText}`);
-          }            
+          try {
+            const data = JSON.parse(errorResponse.responseText);
+            alert(data.error);
+          } catch (e) {
+            alert(errorResponse.responseText);
+          }
         }
       });
     });

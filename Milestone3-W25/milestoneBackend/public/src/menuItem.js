@@ -26,8 +26,9 @@ $(document).ready(function() {
       url: '/api/v1/menuItem/new',
       contentType: 'application/json',
       data: JSON.stringify(data),
+      dataType: 'json',
       success: function(resp) {
-        alert(resp || 'menu item was created successfully');
+        alert(resp.message || 'Menu item was created successfully');
         // clear form
         $('#itemName').val('');
         $('#itemDescription').val('');
@@ -38,8 +39,14 @@ $(document).ready(function() {
         }
       },
       error: function(err) {
-        const msg = err && err.responseText ? err.responseText : 'Could not create menu item';
-        alert('Error: ' + msg);
+        let msg = 'Could not create menu item';
+        try {
+          const data = JSON.parse(err.responseText);
+          msg = data.error || msg;
+        } catch (e) {
+          msg = err.responseText || msg;
+        }
+        alert(msg);
       }
     });
 
