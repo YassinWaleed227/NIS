@@ -66,12 +66,26 @@ function handlePrivateBackendApi(app) {
 
       const items = await db('FoodTruck.MenuItems')
         .where({ 
-          truckId: user.truckId,
-          status: 'available' 
+          truckId: user.truckId
         })
         .orderBy('itemId', 'asc');
 
-      return res.status(200).json(items);
+      // Add sequential item number - ensure itemId is present
+      const itemsWithNumbers = items.map((item, index) => {
+        return {
+          itemId: item.itemId,
+          itemNumber: index + 1,
+          name: item.name,
+          description: item.description,
+          price: item.price,
+          category: item.category,
+          status: item.status,
+          truckId: item.truckId,
+          createdAt: item.createdAt
+        };
+      });
+
+      return res.status(200).json(itemsWithNumbers);
     } catch (err) {
       console.error('Error fetching menu items:', err);
       return res.status(500).json({ error: 'Could not retrieve menu items' });
@@ -88,15 +102,18 @@ function handlePrivateBackendApi(app) {
         return res.status(403).json({ error: 'Only truck owners can view menu items' });
       }
 
+      const itemId = parseInt(req.params.itemId, 10);
+      if (isNaN(itemId)) {
+        return res.status(400).json({ error: 'Invalid item ID' });
+      }
+
       const item = await db('FoodTruck.MenuItems')
-        .where({
-          itemId: req.params.itemId,
-          truckId: user.truckId,
-          status: 'available'
-        })
+        .where('itemId', itemId)
+        .where('truckId', user.truckId)
         .first();
 
       if (!item) {
+        console.error(`Item ${itemId} not found for truck ${user.truckId}`);
         return res.status(404).json({ error: 'Menu item not found' });
       }
 
@@ -164,14 +181,13 @@ function handlePrivateBackendApi(app) {
         return res.status(403).json({ error: 'Only truck owners can delete menu items' });
       }
 
-      // Soft delete by updating status to 'unavailable'
+      // Hard delete - actually remove the item
       const result = await db('FoodTruck.MenuItems')
         .where({
           itemId: req.params.itemId,
-          truckId: user.truckId,
-          status: 'available'
+          truckId: user.truckId
         })
-        .update({ status: 'unavailable' });
+        .del();
 
       if (result === 0) {
         return res.status(404).json({ error: 'Menu item not found or not owned by you' });
@@ -192,7 +208,6 @@ function handlePrivateBackendApi(app) {
   app.get('/api/v1/trucks/view', async (req, res) => {
     try {
       const trucks = await db('FoodTruck.Trucks')
-        .where('truckStatus', 'available')
         .orderBy('truckId', 'asc');
 
       return res.status(200).json(trucks);
@@ -216,9 +231,37 @@ function handlePrivateBackendApi(app) {
         })
         .orderBy('itemId', 'asc');
 
-      return res.status(200).json(items);
+      // Add sequential item number
+      const itemsWithNumbers = items.map((item, index) => ({
+        ...item,
+        itemNumber: index + 1
+      }));
+
+      return res.status(200).json(itemsWithNumbers);
     } catch (err) {
       console.error('Error fetching menu items:', err);
+      return res.status(500).json({ error: 'Could not retrieve menu items' });
+    }
+  });
+
+  // =======================================
+  // 7.5 View Menu Items by Truck & Category
+  // =======================================
+  app.get('/api/v1/menuItem/truck/:truckId/category/:category', async (req, res) => {
+    try {
+      const { truckId, category } = req.params;
+
+      const items = await db('FoodTruck.MenuItems')
+        .where({ 
+          truckId,
+          category,
+          status: 'available' 
+        })
+        .orderBy('itemId', 'asc');
+
+      return res.status(200).json(items);
+    } catch (err) {
+      console.error('Error fetching menu items by category:', err);
       return res.status(500).json({ error: 'Could not retrieve menu items' });
     }
   });
@@ -402,98 +445,131 @@ function handlePrivateBackendApi(app) {
   // 12. Place an Order
   // =====================
   app.post('/api/v1/order/new', async (req, res) => {
-    const trx = await db.transaction();
-    
     try {
+      // Get user first (before transaction) to avoid nested transaction issues
       const user = await getUser(req);
       if (!user || user.role !== 'customer') {
-        await trx.rollback();
         return res.status(403).json({ error: 'Only customers can place orders' });
       }
-
-      const { scheduledPickupTime } = req.body;
       
-      if (!scheduledPickupTime) {
-        await trx.rollback();
-        return res.status(400).json({ error: 'scheduledPickupTime is required' });
-      }
+      const trx = await db.transaction();
+      
+      try {
 
-      // Get cart items
-      const cartItems = await trx('FoodTruck.Carts')
-        .where({ userId: user.userId })
-        .join('FoodTruck.MenuItems', 'Carts.itemId', 'MenuItems.itemId')
-        .select(
-          'Carts.cartId',
-          'Carts.itemId',
-          'Carts.quantity',
-          'Carts.price',
-          'MenuItems.truckId'
-        );
+        const { scheduledPickupTime } = req.body;
+        
+        if (!scheduledPickupTime) {
+          await trx.rollback();
+          return res.status(400).json({ error: 'scheduledPickupTime is required' });
+        }
 
-      if (cartItems.length === 0) {
-        await trx.rollback();
-        return res.status(400).json({ error: 'Cart is empty' });
-      }
+        // Get cart items using the transaction
+        const cartItems = await trx('FoodTruck.Carts')
+          .where({ userId: user.userId })
+          .join('FoodTruck.MenuItems', 'FoodTruck.Carts.itemId', 'FoodTruck.MenuItems.itemId')
+          .select(
+            'FoodTruck.Carts.cartId',
+            'FoodTruck.Carts.itemId',
+            'FoodTruck.Carts.quantity',
+            'FoodTruck.Carts.price',
+            'FoodTruck.MenuItems.truckId'
+          );
 
-      // Check if all items are from the same truck
-      const truckIds = [...new Set(cartItems.map(item => item.truckId))];
-      if (truckIds.length > 1) {
-        await trx.rollback();
-        return res.status(400).json({ 
-          error: 'Cannot order from multiple trucks. Please adjust your cart.' 
+        if (!cartItems || cartItems.length === 0) {
+          await trx.rollback();
+          return res.status(400).json({ error: 'Cart is empty' });
+        }
+
+        // Check if all items are from the same truck
+        const truckIds = [...new Set(cartItems.map(item => item.truckId))];
+        if (truckIds.length > 1) {
+          await trx.rollback();
+          return res.status(400).json({ 
+            error: 'Cannot order from multiple trucks. Please adjust your cart.' 
+          });
+        }
+
+        const truckId = truckIds[0];
+        
+        // Check if truck is available
+        const truck = await trx('FoodTruck.Trucks')
+          .where('truckId', truckId)
+          .first();
+        
+        if (!truck) {
+          await trx.rollback();
+          return res.status(404).json({ error: 'Truck not found' });
+        }
+        
+        if (truck.truckStatus !== 'available') {
+          await trx.rollback();
+          return res.status(400).json({ error: 'This truck does not process orders at the moment' });
+        }
+        
+        // Calculate total price
+        const totalPrice = cartItems.reduce((sum, item) => {
+          return sum + (parseFloat(item.price) * parseInt(item.quantity));
+        }, 0);
+
+        // Create order
+        const orderResult = await trx('FoodTruck.Orders')
+          .insert({
+            userId: user.userId,
+            truckId,
+            totalPrice,
+            orderStatus: 'pending',
+            scheduledPickupTime: new Date(scheduledPickupTime),
+            orderDate: new Date()
+          })
+          .returning('orderId');
+        
+        // Get the inserted order ID
+        if (!orderResult || orderResult.length === 0) {
+          await trx.rollback();
+          return res.status(500).json({ error: 'Failed to create order - no ID returned' });
+        }
+
+        const orderId = orderResult[0].orderId || orderResult[0];
+        if (!orderId) {
+          await trx.rollback();
+          return res.status(500).json({ error: 'Failed to get order ID' });
+        }
+
+        // Create order items
+        const orderItems = cartItems.map(item => ({
+          orderId: orderId,
+          itemId: item.itemId,
+          quantity: parseInt(item.quantity),
+          price: parseFloat(item.price)
+        }));
+
+        await trx('FoodTruck.OrderItems').insert(orderItems);
+
+        // Clear the cart
+        await trx('FoodTruck.Carts')
+          .where({ userId: user.userId })
+          .del();
+
+        await trx.commit();
+        
+        return res.status(200).json({ 
+          message: 'Order placed successfully',
+          orderId: orderId
         });
+      } catch (err) {
+        await trx.rollback();
+        console.error('Error placing order:', err);
+        return res.status(500).json({ error: 'Could not place order: ' + err.message });
       }
-
-      const truckId = truckIds[0];
-      
-      // Calculate total price
-      const totalPrice = cartItems.reduce((sum, item) => {
-        return sum + (item.price * item.quantity);
-      }, 0);
-
-      // Create order
-      const orderResult = await trx('FoodTruck.Orders')
-        .insert({
-          userId: user.userId,
-          truckId,
-          totalPrice,
-          orderStatus: 'pending',
-          scheduledPickupTime: new Date(scheduledPickupTime),
-          orderDate: new Date()
-        });
-      
-      // Get the inserted order ID
-      const order = { orderId: orderResult[0] };
-
-      // Create order items
-      const orderItems = cartItems.map(item => ({
-        orderId: order.orderId,
-        itemId: item.itemId,
-        quantity: item.quantity,
-        price: item.price
-      }));
-
-      await trx('FoodTruck.OrderItems').insert(orderItems);
-
-      // Clear the cart
-      await trx('FoodTruck.Carts')
-        .where({ userId: user.userId })
-        .del();
-
-      await trx.commit();
-      
-      return res.status(200).json({ 
-        message: 'Order placed successfully',
-        orderId: order.orderId
-      });
     } catch (err) {
-      await trx.rollback();
-      console.error('Error placing order:', err);
-      return res.status(500).json({ error: 'Could not place order' });
+      console.error('Error placing order (outer):', err);
+      return res.status(500).json({ error: 'Could not place order: ' + err.message });
     }
   });
 
-  // Delete a menu item (soft delete)
+  // =====================
+  // 13. Delete a menu item (soft delete)
+  // =====================
   app.delete('/api/v1/menu-item/:itemId', async (req, res) => {
     try {
       const user = await getUser(req);
@@ -642,6 +718,90 @@ function handlePrivateBackendApi(app) {
     }
   });
 
+  // Get truck statistics (for dashboard)
+  app.get('/api/v1/truck/stats', async (req, res) => {
+    try {
+      const user = await getUser(req);
+      
+      if (user.role !== 'truckOwner') {
+        return res.status(403).json({ error: 'Only truck owners can view stats' });
+      }
+
+      // Get truck info
+      const truck = await db('FoodTruck.Trucks')
+        .where('ownerId', user.userId)
+        .first();
+
+      if (!truck) {
+        return res.status(404).json({ error: 'No truck found for this owner' });
+      }
+
+      // Get menu item count
+      const menuItems = await db('FoodTruck.MenuItems')
+        .where({ truckId: truck.truckId, status: 'available' })
+        .count('itemId as count')
+        .first();
+
+      // Get pending orders count
+      const pendingOrders = await db('FoodTruck.Orders')
+        .where({ truckId: truck.truckId, orderStatus: 'pending' })
+        .count('orderId as count')
+        .first();
+
+      // Get completed orders count
+      const completedOrders = await db('FoodTruck.Orders')
+        .where({ truckId: truck.truckId, orderStatus: 'completed' })
+        .count('orderId as count')
+        .first();
+
+      return res.status(200).json({
+        truckName: truck.truckName,
+        ownerName: user.name,
+        truckStatus: truck.truckStatus,
+        orderStatus: truck.orderStatus,
+        menuItemCount: parseInt(menuItems?.count || 0),
+        pendingOrderCount: parseInt(pendingOrders?.count || 0),
+        completedOrderCount: parseInt(completedOrders?.count || 0)
+      });
+    } catch (err) {
+      console.error('Error fetching truck stats:', err);
+      return res.status(500).json({ error: 'Could not retrieve truck statistics' });
+    }
+  });
+
+  // Update truck status (availability)
+  app.put('/api/v1/truck/updateStatus', async (req, res) => {
+    try {
+      const user = await getUser(req);
+      
+      if (user.role !== 'truckOwner') {
+        return res.status(403).json({ error: 'Only truck owners can update status' });
+      }
+
+      const { orderStatus } = req.body;
+      
+      if (!orderStatus || (orderStatus !== 'available' && orderStatus !== 'unavailable')) {
+        return res.status(400).json({ error: 'Invalid order status' });
+      }
+
+      const result = await db('FoodTruck.Trucks')
+        .where('ownerId', user.userId)
+        .update({ truckStatus: orderStatus });
+
+      if (result === 0) {
+        return res.status(404).json({ error: 'No truck found for this owner' });
+      }
+
+      return res.status(200).json({
+        message: 'Truck status updated successfully',
+        orderStatus
+      });
+    } catch (err) {
+      console.error('Error updating truck status:', err);
+      return res.status(500).json({ error: 'Could not update truck status' });
+    }
+  });
+
   // =========================
   // 13. View My Orders (Customer)
   // =========================
@@ -659,9 +819,26 @@ function handlePrivateBackendApi(app) {
           'Orders.*',
           'Trucks.truckName'
         )
-        .orderBy('orderDate', 'desc');
+        .orderBy('orderId', 'asc');
 
-      return res.status(200).json(orders);
+      // Map database column names to API format and add user order number based on creation order
+      const mappedOrders = orders.map((order, index) => ({
+        orderId: order.orderId,
+        userId: order.userId,
+        truckId: order.truckId,
+        orderStatus: order.orderStatus,
+        totalPrice: order.totalPrice,
+        scheduledPickupTime: order.scheduledPickupTime,
+        orderDate: order.orderDate,
+        createdAt: order.createdAt,
+        truckName: order.truckName,
+        userOrderNumber: index + 1
+      }));
+
+      // Sort by date descending for display (newest first) but keep order numbers
+      mappedOrders.sort((a, b) => b.orderDate - new Date(a.orderDate).getTime() ? -1 : 1);
+
+      return res.status(200).json(mappedOrders);
     } catch (err) {
       console.error('Error fetching orders:', err);
       return res.status(500).json({ error: 'Could not retrieve orders' });
@@ -674,28 +851,39 @@ function handlePrivateBackendApi(app) {
   app.get('/api/v1/order/details/:orderId', async (req, res) => {
     try {
       const user = await getUser(req);
-      if (!user || user.role !== 'customer') {
-        return res.status(403).json({ error: 'Only customers can view order details' });
+      if (!user) {
+        return res.status(403).json({ error: 'Not authenticated' });
       }
 
       const orderId = req.params.orderId;
 
       // Get order details
       const order = await db('FoodTruck.Orders')
-        .where({
-          orderId,
-          userId: user.userId
-        })
+        .where('orderId', orderId)
         .join('FoodTruck.Trucks', 'Orders.truckId', 'Trucks.truckId')
+        .join('FoodTruck.Users as u', 'Orders.userId', 'u.userId')
         .select(
           'Orders.*',
           'Trucks.truckName',
-          'Trucks.truckLogo'
+          'Trucks.truckLogo',
+          'u.name as customerName'
         )
         .first();
 
       if (!order) {
-        return res.status(404).json({ error: 'Order not found or not owned by you' });
+        return res.status(404).json({ error: 'Order not found' });
+      }
+
+      // Verify access: customer can view their own orders, truck owner can view orders for their truck
+      if (user.role === 'customer' && order.userId !== user.userId) {
+        return res.status(403).json({ error: 'You do not have access to this order' });
+      } else if (user.role === 'truckOwner') {
+        const truck = await db('FoodTruck.Trucks')
+          .where('ownerId', user.userId)
+          .first();
+        if (!truck || truck.truckId !== order.truckId) {
+          return res.status(403).json({ error: 'You do not have access to this order' });
+        }
       }
 
       // Get order items
@@ -704,15 +892,38 @@ function handlePrivateBackendApi(app) {
         .join('FoodTruck.MenuItems', 'OrderItems.itemId', 'MenuItems.itemId')
         .select(
           'OrderItems.*',
-          'MenuItems.name',
+          'MenuItems.name as itemName',
           'MenuItems.description',
           'MenuItems.category'
         );
 
-      return res.status(200).json({
-        ...order,
-        items
-      });
+      // Map database column names to API format
+      const mappedOrder = {
+        orderId: order.orderId,
+        userId: order.userId,
+        truckId: order.truckId,
+        status: order.orderStatus,
+        totalAmount: order.totalPrice,
+        pickupTime: order.scheduledPickupTime,
+        orderDate: order.orderDate,
+        createdAt: order.createdAt,
+        truckName: order.truckName,
+        truckLogo: order.truckLogo,
+        customerName: order.customerName,
+        items: items.map(item => ({
+          orderItemId: item.orderItemId,
+          orderId: item.orderId,
+          itemId: item.itemId,
+          quantity: item.quantity,
+          price: item.price,
+          itemName: item.itemName,
+          name: item.itemName,
+          description: item.description,
+          category: item.category
+        }))
+      };
+
+      return res.status(200).json(mappedOrder);
     } catch (err) {
       console.error('Error fetching order details:', err);
       return res.status(500).json({ error: 'Could not retrieve order details' });
@@ -744,13 +955,30 @@ function handlePrivateBackendApi(app) {
         .join('FoodTruck.Users as u', 'Orders.userId', 'u.userId')
         .select(
           'Orders.*',
-          'u.firstName as firstName',
-          'u.lastName as lastName',
+          'u.name as customerName',
           'u.email as email'
         )
-        .orderBy('orderDate', 'desc');
+        .orderBy('orderId', 'asc');
 
-      return res.status(200).json(orders);
+      // Map database column names to API format and add truck order number based on creation order
+      const mappedOrders = orders.map((order, index) => ({
+        orderId: order.orderId,
+        userId: order.userId,
+        truckId: order.truckId,
+        status: order.orderStatus,
+        totalAmount: order.totalPrice,
+        pickupTime: order.scheduledPickupTime,
+        orderDate: order.orderDate,
+        createdAt: order.createdAt,
+        customerName: order.customerName,
+        email: order.email,
+        truckOrderNumber: index + 1
+      }));
+
+      // Sort by date descending for display (newest first) but keep order numbers
+      mappedOrders.sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
+
+      return res.status(200).json(mappedOrders);
     } catch (err) {
       console.error('Error fetching truck orders:', err);
       return res.status(500).json({ error: 'Could not retrieve truck orders' });
@@ -767,10 +995,15 @@ function handlePrivateBackendApi(app) {
         return res.status(403).json({ error: 'Only truck owners can update order status' });
       }
 
-      const { orderStatus, estimatedEarliestPickup } = req.body;
+      // Accept both 'status' and 'orderStatus' from request body
+      const newStatus = req.body.status || req.body.orderStatus;
       const validStatuses = ['pending', 'preparing', 'ready', 'completed', 'cancelled'];
       
-      if (!validStatuses.includes(orderStatus)) {
+      if (!newStatus) {
+        return res.status(400).json({ error: 'Status is required' });
+      }
+
+      if (!validStatuses.includes(newStatus)) {
         return res.status(400).json({ error: 'Invalid order status' });
       }
 
@@ -785,15 +1018,10 @@ function handlePrivateBackendApi(app) {
 
       // Update the order status
       const updates = { 
-        orderStatus
+        orderStatus: newStatus
       };
 
-      // Add estimated pickup time if provided
-      if (estimatedEarliestPickup) {
-        updates.estimatedEarliestPickup = new Date(estimatedEarliestPickup);
-      }
-
-      const [updatedOrder] = await db('FoodTruck.Orders')
+      const result = await db('FoodTruck.Orders')
         .where({
           orderId: req.params.orderId,
           truckId: truck.truckId
@@ -801,13 +1029,19 @@ function handlePrivateBackendApi(app) {
         .update(updates)
         .returning('*');
 
-      if (!updatedOrder) {
+      if (!result || result.length === 0) {
         return res.status(404).json({ error: 'Order not found or not associated with your truck' });
       }
 
+      const updatedOrder = result[0];
+
       return res.status(200).json({ 
-        message: 'order status updated successfully',
-        order: updatedOrder
+        message: 'Order status updated successfully',
+        order: {
+          orderId: updatedOrder.orderId,
+          status: updatedOrder.orderStatus,
+          totalAmount: updatedOrder.totalPrice
+        }
       });
     } catch (err) {
       console.error('Error updating order status:', err);

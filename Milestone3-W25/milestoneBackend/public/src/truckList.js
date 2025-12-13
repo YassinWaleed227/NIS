@@ -1,4 +1,10 @@
 $(document).ready(function() {
+  function capitalizeWords(str) {
+    return str.replace(/\b\w/g, function(char) {
+      return char.toUpperCase();
+    });
+  }
+
   function loadTrucks() {
     // If truck owner, load only their truck
     if (typeof userRole !== 'undefined' && userRole === 'truckOwner') {
@@ -44,21 +50,33 @@ $(document).ready(function() {
 
   function renderTrucks(trucks) {
     if (!trucks || trucks.length === 0) {
-      $('#trucksList').html('<p>No available trucks.</p>');
+      $('#trucksList').html('<div class="no-trucks-message">🚫 No available trucks at the moment. Check back soon!</div>');
       return;
     }
 
-    let html = '<div class="row">';
+    let html = '<div class="trucks-grid">';
     trucks.forEach(function(t) {
-      html += '<div class="col-md-4" style="margin-bottom: 15px;">' +
-        '<div class="panel panel-default">' +
-        '<div class="panel-heading"><strong>' + escapeHtml(t.truckName) + '</strong></div>' +
-        '<div class="panel-body">' +
-        (t.truckLogo ? '<img src="' + escapeHtml(t.truckLogo) + '" style="max-width:100%" />' : '') +
-        '<p>Status: ' + escapeHtml(t.truckStatus) + '</p>' +
-        '<p>Order Status: ' + escapeHtml(t.orderStatus) + '</p>' +
-        '<a class="btn btn-primary" href="/menu?truckId=' + t.truckId + '">View Menu</a>' +
-        '</div></div></div>';
+      html += '<div class="truck-card">' +
+        '<div class="truck-card-image">';
+      
+      if (t.truckLogo) {
+        html += '<img src="' + escapeHtml(t.truckLogo) + '" alt="' + escapeHtml(t.truckName) + '" />';
+      } else {
+        html += '<div class="truck-placeholder">🚚</div>';
+      }
+      
+      var capitalizedName = capitalizeWords(escapeHtml(t.truckName));
+      var capitalizedStatus = capitalizeWords(escapeHtml(t.truckStatus));
+      var statusClass = t.truckStatus === 'available' ? 'available' : 'unavailable';
+      
+      html += '</div>' +
+        '<div class="truck-card-content">' +
+        '<div class="truck-card-title">' + capitalizedName + '</div>' +
+        '<div class="truck-card-status ' + statusClass + '">' + 
+        capitalizedStatus + '</div>';
+      
+      html += '<a class="truck-card-button" href="/menu?truckId=' + t.truckId + '">View Menu</a>' +
+        '</div></div>';
     });
     html += '</div>';
 

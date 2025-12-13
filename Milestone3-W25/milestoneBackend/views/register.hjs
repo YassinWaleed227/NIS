@@ -1,109 +1,266 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <link rel='stylesheet' href='/styles/bootstrap.min.css' />
-    <link rel='stylesheet' href='/styles/style.css' />
-    <script src="/js/jquery-2.2.0.min.js" type="text/javascript"></script>
-    <script src="/js/bootstrap.min.js" type="text/javascript"></script>
-  </head>
-  <body>
-    <div>
-      <nav class="navbar navbar-inverse" style="padding-left:130px;">
-          <ul class="nav navbar-nav">
-            <li><a href="/">Home</a></li>
-          </ul>
-      </nav>
-    </div>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register</title>
 
-    <div class="center">
-      <h1>Register</h1>
-    </div>
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="/js/jquery-2.2.0.min.js" type="text/javascript"></script>
 
-    <div style="padding-left: 100px">
-      <form class="form-horizontal" style="width: 70%;" id="registerForm" onsubmit="return false;">
-        
-        <!-- Name -->
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #f8f3e7, #f2ecdd);
+      color: #4a4a4a;
+      position: relative;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 20% 50%, rgba(221, 182, 110, 0.15) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 80%, rgba(240, 200, 140, 0.15) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .auth-container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+    }
+
+    .auth-card {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 40px 35px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+    }
+
+    .auth-title {
+      text-align: center;
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #d4a657, #e6c78b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .auth-subtitle {
+      text-align: center;
+      font-size: 14px;
+      color: #777;
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: #555;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+      outline: none;
+      transition: 0.3s;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: #d4a657;
+      box-shadow: 0 0 0 2px rgba(212, 166, 87, 0.25);
+    }
+
+    .auth-btn {
+      width: 100%;
+      padding: 14px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #d4a657, #e6c78b);
+      color: white;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .auth-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(212, 166, 87, 0.35);
+    }
+
+    .auth-btn:active {
+      transform: translateY(0);
+    }
+
+    .auth-footer {
+      margin-top: 25px;
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .auth-footer a {
+      color: #d4a657;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .auth-footer a:hover {
+      text-decoration: underline;
+    }
+
+    .alert {
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .alert-danger {
+      background: rgba(220, 53, 69, 0.2);
+      color: #721c24;
+      border: 1px solid rgba(220, 53, 69, 0.3);
+    }
+
+    .alert-success {
+      background: rgba(40, 167, 69, 0.2);
+      color: #155724;
+      border: 1px solid rgba(40, 167, 69, 0.3);
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="auth-container">
+    <div class="auth-card">
+      <h1 class="auth-title">Create Account</h1>
+      <p class="auth-subtitle">Join us today</p>
+
+      <div class="alert alert-danger" id="errorAlert"></div>
+
+      <!-- REGISTER FORM -->
+      <form id="registerForm" onsubmit="return false;">
         <div class="form-group">
-          <label for="name" class="col-sm-2 control-label">Name</label>
-          <div class="col-sm-10">
-              <input type="text" class="form-control" id="name" name="name" placeholder="Enter Name" required>
-          </div>
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" placeholder="Enter your full name" required />
         </div>
 
-        <!-- Birth Date -->
         <div class="form-group">
-          <label for="birthDate" class="col-sm-2 control-label">Birth Date</label>
-          <div class="col-sm-10">
-              <input type="date" class="form-control" id="birthDate" name="birthDate">
-          </div>
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" placeholder="Enter your email" required />
         </div>
 
-        <!-- Email -->
         <div class="form-group">
-          <label for="email" class="col-sm-2 control-label">Email</label>
-          <div class="col-sm-10">
-              <input type="text" class="form-control" id="email" name="email" placeholder="Email" required>
-          </div>
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="Enter your password" required />
         </div>
 
-        <!-- Password -->
         <div class="form-group">
-          <label for="password" class="col-sm-2 control-label">Password</label>
-          <div class="col-sm-10">
-              <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
-          </div>
+          <label for="birthDate">Birth Date</label>
+          <input type="date" id="birthDate" name="birthDate" />
         </div>
 
-        <!-- Role Dropdown -->
         <div class="form-group">
-          <label for="role" class="col-sm-2 control-label">Role</label>
-          <div class="col-sm-10">
-              <select class="form-control" id="role" name="role" required>
-                  <option value="customer">Customer</option>
-                  <option value="truckOwner">Truck Owner</option>
-              </select>
-          </div>
+          <label for="role">Role</label>
+          <select id="role" name="role" required>
+            <option value="customer">Customer</option>
+            <option value="truckOwner">Truck Owner</option>
+          </select>
         </div>
 
-        <!-- Register Button -->
-        <div class="form-group">
-          <div class="col-sm-10 col-sm-offset-2">
-              <input id="register" name="register" type="button" value="Register" class="btn btn-primary">
-          </div>
-        </div>
+        <button type="button" class="auth-btn" id="register">Register</button>
       </form>
+
+      <div class="auth-footer">
+        Already have an account? <a href="/">Login</a>
+      </div>
     </div>
+  </div>
 
-    <script>
-      $('#register').click(function() {
-        const data = {
-          name: $('#name').val(),
-          birthDate: $('#birthDate').val(),
-          email: $('#email').val(),
-          password: $('#password').val(),
-          role: $('#role').val()
-        };
+  <script>
+    $('#register').click(function() {
+      const errorAlert = $('#errorAlert');
+      errorAlert.hide();
 
-        $.ajax({
-          url: '/api/v1/user',
-          type: 'POST',
-          contentType: 'application/json',
-          data: JSON.stringify(data),
-          dataType: 'json',
-          success: function(res) {
-            alert(res.message || 'User registered successfully');
+      const data = {
+        name: $('#name').val(),
+        birthDate: $('#birthDate').val(),
+        email: $('#email').val(),
+        password: $('#password').val(),
+        role: $('#role').val()
+      };
+
+      if (!data.name || !data.email || !data.password) {
+        errorAlert.text('Please fill in all required fields').show();
+        return;
+      }
+
+      $.ajax({
+        url: '/api/v1/user',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        dataType: 'json',
+        success: function(res) {
+          const successMsg = $('<div class="alert alert-success"></div>')
+            .text(res.message || 'User registered successfully')
+            .insertBefore('#registerForm');
+          setTimeout(() => {
             window.location.href = '/'; // redirect to login page
-          },
-          error: function(xhr) {
-            try {
-              const data = xhr.responseJSON || JSON.parse(xhr.responseText);
-              alert(data.error);
-            } catch (e) {
-              alert(xhr.responseText || 'Unknown error occurred');
-            }
+          }, 1500);
+        },
+        error: function(xhr) {
+          try {
+            const data = xhr.responseJSON || JSON.parse(xhr.responseText);
+            errorAlert.text(data.error || 'Registration failed').show();
+          } catch (e) {
+            errorAlert.text(xhr.responseText || 'Unknown error occurred').show();
           }
-        });
+        }
       });
-    </script>
-  </body>
+    });
+  </script>
+
+</body>
 </html>

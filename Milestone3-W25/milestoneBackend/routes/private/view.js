@@ -13,6 +13,16 @@ function handlePrivateFrontEndView(app) {
             }
             
             if (user.role === 'truckOwner') {
+                // Check if truck owner has a truck
+                const truck = await db('FoodTruck.Trucks')
+                    .where('ownerId', user.userId)
+                    .first();
+                
+                if (!truck) {
+                    // No truck found, redirect to first-time setup page
+                    return res.redirect('/firstTimeSetup');
+                }
+                
                 return res.render('truckOwnerHomePage', { 
                     name: user.name,
                     role: 'truckOwner' 
@@ -26,6 +36,38 @@ function handlePrivateFrontEndView(app) {
         } catch (error) {
             console.error('Dashboard error:', error);
             return res.status(500).render('error', { message: 'Internal server error' });
+        }
+    });
+
+    // First-time setup (onboarding for new truck owners)
+    app.get('/firstTimeSetup', async (req, res) => {
+        try {
+            const user = await getUser(req);
+            if (!user) {
+                return res.redirect('/login');
+            }
+            
+            if (user.role !== 'truckOwner') {
+                return res.status(403).render('error', { message: 'Only truck owners can access this page' });
+            }
+            
+            // Check if user already has a truck
+            const truck = await db('FoodTruck.Trucks')
+                .where('ownerId', user.userId)
+                .first();
+            
+            if (truck) {
+                // User already has a truck, redirect to dashboard
+                return res.redirect('/truckOwnerHome');
+            }
+            
+            return res.render('firstTimeSetup', { 
+                name: user.name,
+                role: 'truckOwner'
+            });
+        } catch (error) {
+            console.error('First-time setup error:', error);
+            return res.status(500).render('error', { message: 'Error loading setup page' });
         }
     });
 
@@ -113,6 +155,104 @@ function handlePrivateFrontEndView(app) {
         } catch (error) {
             console.error('Truck management error:', error);
             return res.status(500).render('error', { message: 'Error loading truck management' });
+        }
+    });
+
+    // Truck owner home
+    app.get('/truckOwnerHome', async (req, res) => {
+        try {
+            const user = await getUser(req);
+            if (!user || user.role !== 'truckOwner') {
+                return res.status(403).render('error', { message: 'Access denied' });
+            }
+            
+            // Check if truck owner has a truck
+            const truck = await db('FoodTruck.Trucks')
+                .where('ownerId', user.userId)
+                .first();
+            
+            if (!truck) {
+                // No truck found, redirect to trucks page to create one
+                return res.redirect('/trucks');
+            }
+            
+            return res.render('truckOwnerHomePage', { 
+                name: user.name,
+                role: 'truckOwner'
+            });
+        } catch (error) {
+            console.error('Truck owner home error:', error);
+            return res.status(500).render('error', { message: 'Error loading dashboard' });
+        }
+    });
+
+    // Truck orders view
+    app.get('/truckOrders', async (req, res) => {
+        try {
+            const user = await getUser(req);
+            if (!user || user.role !== 'truckOwner') {
+                return res.status(403).render('error', { message: 'Access denied' });
+            }
+            return res.render('truckOrders', { 
+                name: user.name,
+                role: 'truckOwner'
+            });
+        } catch (error) {
+            console.error('Truck orders error:', error);
+            return res.status(500).render('error', { message: 'Error loading orders' });
+        }
+    });
+
+    // Truck menu management
+    app.get('/truckMenu', async (req, res) => {
+        try {
+            const user = await getUser(req);
+            if (!user || user.role !== 'truckOwner') {
+                return res.status(403).render('error', { message: 'Access denied' });
+            }
+            return res.render('truckMenuManagement', { 
+                name: user.name,
+                role: 'truckOwner'
+            });
+        } catch (error) {
+            console.error('Truck menu error:', error);
+            return res.status(500).render('error', { message: 'Error loading menu management' });
+        }
+    });
+
+    // Add menu item page
+    app.get('/addMenuItem', async (req, res) => {
+        try {
+            const user = await getUser(req);
+            if (!user || user.role !== 'truckOwner') {
+                return res.status(403).render('error', { message: 'Access denied' });
+            }
+            return res.render('addMenuItem', { 
+                name: user.name,
+                role: 'truckOwner'
+            });
+        } catch (error) {
+            console.error('Add menu item error:', error);
+            return res.status(500).render('error', { message: 'Error loading add menu item page' });
+        }
+    });
+
+    // Edit menu item page
+    app.get('/editMenuItem/:itemId', async (req, res) => {
+        try {
+            const user = await getUser(req);
+            if (!user || user.role !== 'truckOwner') {
+                return res.status(403).render('error', { message: 'Access denied' });
+            }
+            const itemId = req.params.itemId;
+            return res.render('editMenuItem', { 
+                name: user.name,
+                role: 'truckOwner',
+                itemId: itemId
+            });
+        } catch (error) {
+            console.error('Edit menu item error:', error);
+            return res.status(500).render('error', { message: 'Error loading edit menu item page' });
         }
     });
 

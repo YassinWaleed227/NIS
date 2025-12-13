@@ -9,7 +9,16 @@ $(document).ready(function(){
       const role = $('#role').val();
 
       if(!name || !email || !password){
-          alert("Name, Email, and Password are required")
+          const errorAlert = $('#errorAlert');
+          errorAlert.text("Name, Email, and Password are required").show();
+          return;
+      }
+
+      // Validate that name has at least first and last name
+      const nameParts = name.trim().split(/\s+/);
+      if(nameParts.length < 2){
+          const errorAlert = $('#errorAlert');
+          errorAlert.text("Please enter both first and last name").show();
           return;
       }
 
@@ -28,15 +37,20 @@ $(document).ready(function(){
         dataType: 'json',
         data: JSON.stringify(data),
         success: function(serverResponse) {
-            alert("successfully registered user")
-            location.href = '/';
+            const successAlert = $('<div class="alert alert-success" style="background: rgba(40, 167, 69, 0.2); border: 1px solid #28a745; color: #155724; padding: 15px; border-radius: 8px; margin-bottom: 20px;">Successfully registered user</div>');
+            $('#registerForm').before(successAlert);
+            setTimeout(() => {
+              location.href = '/';
+            }, 1500);
         },
         error: function(errorResponse) {
             try {
               const data = JSON.parse(errorResponse.responseText);
-              alert(data.error);
+              const errorAlert = $('#errorAlert');
+              errorAlert.text(data.error).show();
             } catch (e) {
-              alert(errorResponse.responseText);
+              const errorAlert = $('#errorAlert');
+              errorAlert.text(errorResponse.responseText).show();
             }
         }
       });

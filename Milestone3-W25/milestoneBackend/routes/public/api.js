@@ -13,6 +13,13 @@ function handlePublicBackendApi(app) {
       if (!name) {
         return res.status(400).json({ error: 'Name is required' });
       }
+      
+      // Validate that name has at least first and last name
+      const nameParts = name.trim().split(/\s+/);
+      if (nameParts.length < 2) {
+        return res.status(400).json({ error: 'Please enter both first and last name' });
+      }
+      
       if (!email) {
         return res.status(400).json({ error: 'Email is required' });
       }

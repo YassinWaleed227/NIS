@@ -25,6 +25,11 @@ app.use(authMiddleware);
 handlePrivateFrontEndView(app);
 handlePrivateBackendApi(app);
 
+// 404 catch-all route - must be last
+app.use((req, res) => {
+    return res.status(404).render('error', { message: 'The resource requested could not be found on this server!' });
+});
+
 app.listen(PORT, () => {
     console.log(`Server is now listening at port ${PORT} on http://localhost:${PORT}/`);
 });

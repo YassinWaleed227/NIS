@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel='stylesheet' href='/styles/bootstrap.min.css' />
+    <link rel='stylesheet' href='/styles/style.css' />
+    <script src="/js/jquery-2.2.0.min.js" type="text/javascript"></script>
+    <script src="/js/bootstrap.min.js" type="text/javascript"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Poppins', sans-serif;
+        background: linear-gradient(135deg, #f8f3e7 0%, #f2ecdd 50%, #f8f3e7 100%);
+        color: #4a4a4a;
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden;
+      }
+
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 20% 50%, rgba(221, 182, 110, 0.15) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 80%, rgba(240, 200, 140, 0.15) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .navbar {
+        background: rgba(255, 255, 255, 0.7) !important;
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .navbar-brand {
+        font-size: 18px !important;
+        font-weight: 600 !important;
+        display: flex !important;
+        align-items: center;
+        gap: 10px;
+        background: linear-gradient(135deg, #d4a657, #e6c78b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: 1px;
+      }
+
+      .navbar-brand img {
+        width: 32px;
+        height: 32px;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+      }
+
+      .logout-icon {
+        width: 16px;
+        height: 16px;
+        display: inline-block;
+        margin-right: 6px;
+      }
+
+      .nav > li > a {
+        color: #4a4a4a !important;
+        transition: 0.3s !important;
+        font-weight: 500;
+      }
+
+      .nav > li > a:hover {
+        color: #d4a657 !important;
+        text-shadow: 0 0 10px rgba(212, 166, 87, 0.4);
+      }
+
+      .container {
+        position: relative;
+        z-index: 1;
+      }
+
+      .welcome-header {
+        background: rgba(255, 255, 255, 0.55);
+        backdrop-filter: blur(18px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        color: #4a4a4a;
+        padding: 60px 40px;
+        text-align: center;
+        margin: 40px auto;
+        border-radius: 22px;
+        box-shadow: 0 8px 25px rgba(150, 150, 150, 0.2);
+        max-width: 600px;
+      }
+
+      .welcome-header h1 {
+        font-size: 2.8em;
+        margin-bottom: 15px;
+        font-weight: 700;
+        background: linear-gradient(90deg, #d4a657, #f2e4c3, #d4a657);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: shimmer 4s linear infinite;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      @keyframes shimmer {
+        0% { background-position: 0% center; }
+        100% { background-position: 200% center; }
+      }
+
+      .welcome-header p {
+        font-size: 18px;
+        opacity: 0.9;
+        margin-bottom: 5px;
+      }
+
+      .welcome-header .highlight {
+        font-weight: 600;
+        color: #d4a657;
+      }
+
+      .setup-form-container {
+        background: rgba(255, 255, 255, 0.55);
+        backdrop-filter: blur(18px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        padding: 50px;
+        border-radius: 22px;
+        margin: 30px auto;
+        max-width: 700px;
+        box-shadow: 0 8px 25px rgba(150, 150, 150, 0.2);
+      }
+
+      .setup-form-container h2 {
+        font-size: 2em;
+        margin-bottom: 30px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #d4a657, #e6c78b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-align: center;
+      }
+
+      .form-group {
+        margin-bottom: 25px;
+      }
+
+      .form-group label {
+        font-weight: 600;
+        color: #4a4a4a;
+        margin-bottom: 10px;
+        display: block;
+        font-size: 16px;
+      }
+
+      .form-control {
+        border: 1px solid rgba(212, 166, 87, 0.3);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.8);
+        color: #4a4a4a;
+        padding: 12px 15px;
+        font-size: 16px;
+        transition: 0.3s;
+      }
+
+      .form-control:focus {
+        border-color: #d4a657;
+        box-shadow: 0 0 0 0.2rem rgba(212, 166, 87, 0.25);
+        background: white;
+        outline: none;
+      }
+
+      .form-control::placeholder {
+        color: rgba(74, 74, 74, 0.5);
+      }
+
+      .btn-create {
+        background: linear-gradient(135deg, #d4a657, #e6c78b);
+        border: none;
+        color: white;
+        font-weight: 600;
+        padding: 14px 40px;
+        border-radius: 8px;
+        transition: 0.3s;
+        width: 100%;
+        font-size: 16px;
+        cursor: pointer;
+      }
+
+      .btn-create:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(212, 166, 87, 0.3);
+        color: white;
+        text-decoration: none;
+      }
+
+      .btn-create:active {
+        transform: translateY(0);
+      }
+
+      .alert-container {
+        margin-bottom: 20px;
+      }
+
+      .alert {
+        border-radius: 8px;
+        border: none;
+        backdrop-filter: blur(10px);
+      }
+
+      .alert-danger {
+        background: rgba(242, 112, 112, 0.15);
+        color: #c33;
+        border: 1px solid rgba(242, 112, 112, 0.3);
+      }
+
+      .alert-success {
+        background: rgba(112, 242, 112, 0.15);
+        color: #333;
+        border: 1px solid rgba(112, 242, 112, 0.3);
+      }
+
+      .steps-indicator {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-bottom: 40px;
+        text-align: center;
+      }
+
+      .step {
+        flex: 1;
+        max-width: 150px;
+      }
+
+      .step-number {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #d4a657, #e6c78b);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 20px;
+        margin: 0 auto 10px;
+        box-shadow: 0 4px 12px rgba(212, 166, 87, 0.3);
+      }
+
+      .step.active .step-number {
+        transform: scale(1.1);
+      }
+
+      .step-label {
+        font-weight: 600;
+        color: #4a4a4a;
+        font-size: 14px;
+      }
+
+      .loading-spinner {
+        display: none;
+        text-align: center;
+        margin: 20px 0;
+      }
+
+      .spinner-border {
+        color: #d4a657;
+        width: 40px;
+        height: 40px;
+        border-width: 4px;
+      }
+
+      .form-info {
+        background: rgba(212, 166, 87, 0.1);
+        border: 1px solid rgba(212, 166, 87, 0.3);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 30px;
+        color: #4a4a4a;
+      }
+
+      .form-info strong {
+        color: #d4a657;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <span class="navbar-brand">
+            <img src="/images/food-logo-svgrepo-com.svg" alt="Food Logo">
+            Food Truck Hub
+          </span>
+        </div>
+        <ul class="nav navbar-nav">
+          <li class="active"><a href="/dashboard">Dashboard</a></li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="/logout"><img src="/images/logout-svgrepo-com.svg" alt="Logout" class="logout-icon"> Logout</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+      <!-- Welcome Header -->
+      <div class="welcome-header">
+        <h1><span>🎉 Welcome</span><span style="text-transform: capitalize;">{{{ name }}}</span><span>!</span></h1>
+        <p>Let's get your food truck <span class="highlight">up and running</span></p>
+        <p style="font-size: 14px; margin-top: 10px; opacity: 0.8;">Start by creating your truck, then you'll be able to manage your menu</p>
+      </div>
+
+      <!-- Steps Indicator -->
+      <div class="setup-form-container">
+        <div class="steps-indicator">
+          <div class="step active">
+            <div class="step-number">1</div>
+            <div class="step-label">Create Truck</div>
+          </div>
+          <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-label">Add Menu Items</div>
+          </div>
+          <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-label">Start Taking Orders</div>
+          </div>
+        </div>
+
+        <h2>Create Your Truck</h2>
+
+        <!-- Alert Container -->
+        <div id="alertContainer"></div>
+
+        <form id="truckSetupForm">
+          <div class="form-group">
+            <label for="truckName">Truck Name <span style="color: #d4a657;">*</span></label>
+            <input 
+              type="text" 
+              class="form-control" 
+              id="truckName" 
+              name="truckName" 
+              placeholder="e.g., The Gourmet Burger" 
+              required
+            >
+            <small style="color: #666; margin-top: 5px; display: block;">What will your truck be called?</small>
+          </div>
+
+          <div class="form-group">
+            <label for="truckLogo">Truck Logo URL (Optional)</label>
+            <input 
+              type="url" 
+              class="form-control" 
+              id="truckLogo" 
+              name="truckLogo" 
+              placeholder="https://example.com/logo.jpg"
+            >
+            <small style="color: #666; margin-top: 5px; display: block;">Add a logo URL to make your truck more recognizable</small>
+          </div>
+
+          <div class="loading-spinner" id="loadingSpinner">
+            <div class="spinner-border" role="status">
+              <span class="sr-only">Loading...</span>
+            </div>
+            <p style="margin-top: 10px; color: #d4a657;">Creating your truck...</p>
+          </div>
+
+          <button type="submit" class="btn-create" id="submitBtn">
+            ✨ Create My Food Truck
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      $(document).ready(function() {
+        $('#truckSetupForm').on('submit', function(e) {
+          e.preventDefault();
+
+          const truckName = $('#truckName').val().trim();
+          const truckLogo = $('#truckLogo').val().trim();
+
+          if (!truckName) {
+            showAlert('Truck name is required', 'danger');
+            return;
+          }
+
+          // Show loading spinner
+          $('#loadingSpinner').show();
+          $('#submitBtn').prop('disabled', true);
+
+          $.ajax({
+            url: '/api/v1/truck/new',
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify({
+              truckName: truckName,
+              truckLogo: truckLogo || null
+            }),
+            xhrFields: {
+              withCredentials: true
+            },
+            success: function(data) {
+              showAlert('🎉 Truck created successfully! Redirecting to your dashboard...', 'success');
+              setTimeout(function() {
+                window.location.href = '/truckOwnerHome';
+              }, 1500);
+            },
+            error: function(err) {
+              $('#loadingSpinner').hide();
+              $('#submitBtn').prop('disabled', false);
+
+              let errorMsg = 'Error creating truck';
+              try {
+                if (err.responseJSON && err.responseJSON.error) {
+                  errorMsg = err.responseJSON.error;
+                }
+              } catch(e) {
+                // Keep default error message
+              }
+              
+              showAlert('❌ ' + errorMsg, 'danger');
+            }
+          });
+        });
+
+        function showAlert(message, type) {
+          const alertHtml = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+              ${message}
+              <button type="button" class="close" data-dismiss="alert">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+          `;
+          $('#alertContainer').html(alertHtml);
+          $('html, body').animate({ scrollTop: 0 }, 300);
+        }
+      });
+    </script>
+  </body>
+</html>

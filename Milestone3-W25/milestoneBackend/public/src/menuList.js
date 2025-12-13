@@ -1,4 +1,6 @@
 $(document).ready(function() {
+  let allItems = [];
+
   window.loadMenuItems = function() {
     const params = new URLSearchParams(window.location.search);
     const truckId = params.get('truckId');
@@ -13,7 +15,9 @@ $(document).ready(function() {
         type: 'GET',
         url: '/api/v1/menu-item/truck/' + encodeURIComponent(truckId),
         success: function(items) {
+          allItems = items;
           renderMenuItems(items, true);
+          buildCategoryFilter(items);
         },
         error: function(err) {
           let msg = 'Could not load menu items';
@@ -37,7 +41,9 @@ $(document).ready(function() {
       type: 'GET',
       url: '/api/v1/menuItem/view',
       success: function(items) {
+        allItems = items;
         renderMenuItems(items, false);
+        buildCategoryFilter(items);
       },
       error: function(err) {
         let msg = 'Could not load menu items';
@@ -54,37 +60,79 @@ $(document).ready(function() {
 
   function renderMenuItems(items, customerView) {
     if (!items || items.length === 0) {
-      $('#menuItemsList').html('<p>No available menu items.</p>');
+      $('#menuItemsList').html('<div class="no-items-message">No available menu items.</div>');
       return;
     }
-    let html = '<table class="table table-striped"><thead><tr><th>Item ID</th><th>Name</th><th>Description</th><th>Price</th><th>Category</th><th>Action</th>';
-    html += '</tr></thead><tbody>';
-    items.forEach(function(it) {
-      html += '<tr>' +
-        '<td>' + it.itemId + '</td>' +
-        '<td>' + escapeHtml(it.name) + '</td>' +
-        '<td>' + (it.description ? escapeHtml(it.description) : '') + '</td>' +
-        '<td>' + Number(it.price).toFixed(2) + '</td>' +
-        '<td>' + (it.category || '') + '</td>';
-      if (!customerView) {
-        html += '<td>' +
+
+    // For customer view, group by category
+    if (customerView) {
+      // Group items by category (case-insensitive)
+      const grouped = {};
+      items.forEach(function(it) {
+        const category = (it.category || 'Other').trim().toLowerCase();
+        const displayCategory = it.category ? it.category.trim() : 'Other';
+        
+        if (!grouped[category]) {
+          grouped[category] = {
+            displayName: displayCategory,
+            items: []
+          };
+        }
+        grouped[category].items.push(it);
+      });
+
+      let html = '';
+      // Sort categories alphabetically
+      const sortedCategories = Object.keys(grouped).sort();
+      
+      sortedCategories.forEach(function(category) {
+        const categoryData = grouped[category];
+        html += '<div class="category-section">';
+        html += '<h3 class="category-title">' + escapeHtml(categoryData.displayName) + '</h3>';
+        html += '<div class="menu-grid">';
+        
+        categoryData.items.forEach(function(it) {
+          html += '<div class="menu-card">' +
+            '<div class="menu-card-content">' +
+            '<div class="menu-card-title">' + escapeHtml(it.name) + '</div>';
+          
+          if (it.description) {
+            html += '<div class="menu-card-description">' + escapeHtml(it.description) + '</div>';
+          }
+          
+          html += '<div class="menu-card-price">$' + Number(it.price).toFixed(2) + '</div>' +
+            '<div class="menu-card-actions">' +
+              '<input type="number" min="1" value="1" class="cart-quantity" data-id="' + it.itemId + '">' +
+              '<button class="add-to-cart" data-id="' + it.itemId + '">Add</button>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+        });
+        
+        html += '</div></div>';
+      });
+      
+      $('#menuItemsList').html(html);
+    } else {
+      // For owner view, use table layout
+      let html = '<div class="table-container"><table class="table table-striped"><thead><tr><th>Item ID</th><th>Name</th><th>Description</th><th>Price</th><th>Category</th><th>Action</th>';
+      html += '</tr></thead><tbody>';
+      items.forEach(function(it) {
+        html += '<tr>' +
+          '<td>' + it.itemId + '</td>' +
+          '<td>' + escapeHtml(it.name) + '</td>' +
+          '<td>' + (it.description ? escapeHtml(it.description) : '') + '</td>' +
+          '<td>$' + Number(it.price).toFixed(2) + '</td>' +
+          '<td>' + (it.category || '') + '</td>' +
+          '<td>' +
           '<button class="btn btn-sm btn-primary edit-item-btn" data-item-id="' + it.itemId + '">Edit</button> ' +
           '<button class="btn btn-sm btn-danger delete-item-btn" data-item-id="' + it.itemId + '">Delete</button>' +
-        '</td>';
-      } else {
-        // add to cart controls
-        html += '<td>' +
-          '<div class="input-group" style="max-width:160px;">' +
-            '<input type="number" min="1" value="1" class="form-control form-control-sm cart-quantity" data-id="' + it.itemId + '">' +
-            '<button class="btn btn-sm btn-primary add-to-cart" data-id="' + it.itemId + '">Add</button>' +
-          '</div>' +
-        '</td>';
-      }
-      html += '</tr>';
-    });
-    html += '</tbody></table>';
-
-    $('#menuItemsList').html(html);
+          '</td>' +
+          '</tr>';
+      });
+      html += '</tbody></table></div>';
+      $('#menuItemsList').html(html);
+    }
 
     // Attach delete and edit button click handlers
     $('.delete-item-btn').click(function() {
@@ -116,29 +164,7 @@ $(document).ready(function() {
       updateMenuItem(itemId, body);
     });
     // Attach add to cart button click handlers for customers
-    if (customerView) {
-      $('.add-to-cart').click(async function () {
-        const id = $(this).data('id');
-        const qty = parseInt($(this).closest('.input-group').find('.cart-quantity').val()) || 1;
-        const row = $(this).closest('tr');
-        const price = parseFloat(row.find('td:eq(3)').text());
-        try {
-          const res = await fetch('/api/v1/cart/new', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ itemId: parseInt(id), quantity: qty, price: price })
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error || 'Could not add to cart');
-          alert(data.message || 'Item added to cart successfully');
-          // refresh cart UI if present
-          if (window.loadCart) window.loadCart();
-        } catch (err) {
-          console.error(err);
-          alert(err.message);
-        }
-      });
-    }
+    attachAddToCartHandlers(customerView);
   }
 
   function deleteMenuItem(itemId) {
@@ -190,6 +216,89 @@ $(document).ready(function() {
   function escapeHtml(text) {
     if (!text) return '';
     return text.replace(/[&"'<>]/g, function (m) { return ({'&':'&amp;','"':'&quot;',"'":"&#39;",'<':'&lt;','>':'&gt;'})[m]; });
+  }
+
+  function buildCategoryFilter(items) {
+    // Only show for customer view
+    const params = new URLSearchParams(window.location.search);
+    const truckId = params.get('truckId');
+    
+    if (!truckId) return;
+
+    // Build unique categories (case-insensitive)
+    const categoriesMap = {};
+    items.forEach(item => {
+      if (item.category) {
+        const normalizedKey = item.category.trim().toLowerCase();
+        const displayName = item.category.trim();
+        if (!categoriesMap[normalizedKey]) {
+          categoriesMap[normalizedKey] = displayName;
+        }
+      }
+    });
+
+    if (Object.keys(categoriesMap).length === 0) {
+      $('#categoryFilter').html('');
+      return;
+    }
+
+    let filterHtml = '<button class="category-btn active" data-category="all">All</button>';
+    // Sort categories and create buttons
+    Object.keys(categoriesMap).sort().forEach(normalizedKey => {
+      const displayName = categoriesMap[normalizedKey];
+      filterHtml += '<button class="category-btn" data-category="' + escapeHtml(normalizedKey) + '">' + escapeHtml(displayName) + '</button>';
+    });
+
+    $('#categoryFilter').html(filterHtml);
+
+    // Attach filter button handlers
+    $('.category-btn').click(function() {
+      $('.category-btn').removeClass('active');
+      $(this).addClass('active');
+      
+      const selectedCategory = $(this).data('category');
+      let filteredItems = allItems;
+
+      if (selectedCategory !== 'all') {
+        filteredItems = allItems.filter(item => {
+          const itemCategoryNormalized = (item.category || '').trim().toLowerCase();
+          return itemCategoryNormalized === selectedCategory;
+        });
+      }
+
+      renderMenuItems(filteredItems, true);
+      attachAddToCartHandlers(true);
+    });
+  }
+
+  function attachAddToCartHandlers(customerView) {
+    if (customerView) {
+      $('.add-to-cart').off('click').click(async function () {
+        const id = $(this).data('id');
+        const qty = parseInt($(this).closest('.menu-card-actions').find('.cart-quantity').val()) || 1;
+        const card = $(this).closest('.menu-card');
+        const price = parseFloat(card.find('.menu-card-price').text().replace('$', ''));
+        try {
+          const res = await fetch('/api/v1/cart/new', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ itemId: parseInt(id), quantity: qty, price: price })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Could not add to cart');
+          if (window.showSuccessMessage) {
+            window.showSuccessMessage(data.message || 'Item added to cart successfully!');
+          } else {
+            alert(data.message || 'Item added to cart successfully');
+          }
+          // refresh cart UI if present
+          if (window.loadCart) window.loadCart();
+        } catch (err) {
+          console.error(err);
+          alert(err.message);
+        }
+      });
+    }
   }
 
   // Initial load

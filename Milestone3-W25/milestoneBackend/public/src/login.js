@@ -4,7 +4,8 @@ $(document).ready(function(){
       const password = $('#password').val();
 
       if(!email || !password){
-          alert("Email and Password are required")
+          const errorAlert = $('#errorAlert');
+          errorAlert.text("Email and Password are required").show();
           return;
       }
 
@@ -20,7 +21,6 @@ $(document).ready(function(){
         dataType: 'json',
         data: JSON.stringify(data),
         success: function(serverResponse) {
-          alert(serverResponse.message || "Login successful");
           // Add small delay to ensure cookie is set before redirect
           setTimeout(function() {
             window.location.href = '/dashboard';
@@ -29,9 +29,11 @@ $(document).ready(function(){
         error: function(errorResponse) {
           try {
             const data = JSON.parse(errorResponse.responseText);
-            alert(data.error);
+            const errorAlert = $('#errorAlert');
+            errorAlert.text(data.error).show();
           } catch (e) {
-            alert(errorResponse.responseText);
+            const errorAlert = $('#errorAlert');
+            errorAlert.text(errorResponse.responseText).show();
           }
         }
       });

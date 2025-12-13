@@ -66,7 +66,6 @@ create table if not exists "FoodTruck"."Orders"(
 "orderStatus" text not null,
 "totalPrice" numeric(10,2) not null,
 "scheduledPickupTime" timestamp,
-"estimatedEarliestPickup" timestamp,
 "orderDate" timestamp default current_timestamp,
 "createdAt" timestamp default current_timestamp,
 foreign key ("userId") references "FoodTruck"."Users"("userId") on delete cascade,
