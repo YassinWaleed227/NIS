@@ -5,7 +5,7 @@ A full-stack web application for managing food truck ordering operations.
 ## 🎯 Features
 
 - **Customer Portal:** Browse trucks, view menus, place orders
-- **Truck Owner Portal:** Manage menu items, view customer orders, track status
+- **Truck Owner Portal:** Create truck, manage menu items, view customer orders, track status
 - **Real-time Order Management:** Live order updates
 - **Role-Based Access Control:** Secure customer/owner separation
 - **Session-Based Authentication:** Secure login with 30-minute expiry
@@ -139,6 +139,7 @@ milestoneBackend/
 - View order history
 
 ### Truck Owner
+- Create truck 
 - Create/edit menu items
 - View incoming orders
 - Update order status
@@ -229,7 +230,6 @@ This project demonstrates:
 - Authentication & authorization
 - Real-world application architecture
 
-Perfect for learning or interviews!
 
 ---
 

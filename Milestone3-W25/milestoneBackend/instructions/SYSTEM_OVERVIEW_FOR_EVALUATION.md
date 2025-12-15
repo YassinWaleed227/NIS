@@ -2,7 +2,7 @@
 
 ## 📋 Executive Summary
 
-This is a **full-stack Node.js/Express web application** for managing a food truck ordering system. It enables **customers** to browse and order from food trucks, and allows **truck owners** to manage their inventory, menus, and orders in real-time.
+This is a **full-stack Node.js/Express web application** for managing a food truck ordering system. It enables **customers** to browse and order from food trucks, and allows **truck owners** to create and manage their trucks, menus, and orders in real-time.
 
 **Technology Stack:**
 - Backend: Node.js + Express.js
