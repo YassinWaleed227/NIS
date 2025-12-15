@@ -9,7 +9,6 @@ function toTitleCase(str) {
 // Load truck data, statistics, and recent orders
 async function loadTruckData() {
   try {
-    // Fetch truck info and stats
     const response = await fetch('/api/v1/truck/stats');
     if (!response.ok) {
       throw new Error(`Failed to fetch truck stats: ${response.statusText}`);
@@ -17,20 +16,16 @@ async function loadTruckData() {
     
     const data = await response.json();
     
-    // Update truck name with title case
     const truckName = toTitleCase(data.truckName || 'Your Truck');
     $('#truckName').text(truckName);
     
-    // Update welcome message with title case name
     const ownerName = toTitleCase(data.ownerName || 'Owner');
     $('#welcomeMsg').text(`Welcome ${ownerName}! Manage your food truck.`);
     
-    // Update statistics
     $('#menuItemCount').text(data.menuItemCount || 0);
     $('#pendingOrderCount').text(data.pendingOrderCount || 0);
     $('#completedOrderCount').text(data.completedOrderCount || 0);
     
-    // Load recent orders
     loadRecentOrders();
   } catch (err) {
     console.error('Error loading truck data:', err);
@@ -59,7 +54,6 @@ async function loadRecentOrders() {
       return;
     }
     
-    // Show only recent 5 orders
     const recentOrders = orders.slice(0, 5);
     let ordersHTML = '';
     
@@ -114,7 +108,6 @@ $(document).on('click', '#availabilityToggle', function() {
     $('#statusBadge').removeClass('status-open').addClass('status-closed').text('CLOSED');
   }
   
-  // Update truck status in the backend
   updateTruckAvailability(isOpen);
 });
 
@@ -133,7 +126,6 @@ async function updateTruckAvailability(isAvailable) {
     
     if (!response.ok) {
       console.error('Failed to update truck status');
-      // Revert the toggle
       $('#availabilityToggle').toggleClass('active');
     }
   } catch (err) {

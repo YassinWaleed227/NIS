@@ -355,7 +355,7 @@
           <li><a href="/truckOrders">Orders</a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
-          <li><a href="/api/v1/user/logout"><img src="/images/logout-svgrepo-com.svg" alt="Logout" style="width: 18px; height: 18px; margin-right: 5px; vertical-align: middle;"> Logout</a></li>
+          <li><a href="/logout"><img src="/images/logout-svgrepo-com.svg" alt="Logout" style="width: 18px; height: 18px; margin-right: 5px; vertical-align: middle;"> Logout</a></li>
         </ul>
       </div>
     </nav>

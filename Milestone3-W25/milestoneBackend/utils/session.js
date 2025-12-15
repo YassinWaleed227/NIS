@@ -13,7 +13,6 @@ async function getUser(req) {
 
   const sessionToken = getSessionToken(req);
   if (!sessionToken) {
-    console.log("no session token is found");
     return null;
   }
 
@@ -25,7 +24,6 @@ async function getUser(req) {
 
   // Check if user session exists
   if (!user) {
-    console.log("User session not found");
     return null;
   }
 
@@ -37,18 +35,14 @@ async function getUser(req) {
     
     // has no FoodTrucks
     if(!TruckRecord){
-      console.log(`This ${user.name} has no owned trucks despite his role`);
-      console.log('user =>', user)
       return user; 
     }else{
       const truckOwnerUser = {...user, ...TruckRecord}
-      console.log('truck Owner user =>', truckOwnerUser)
       return truckOwnerUser;
     }
   }
 
   // role of customer
-  console.log('user =>', user)
   return user;  
 }
 

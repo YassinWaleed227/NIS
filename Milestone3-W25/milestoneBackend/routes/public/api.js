@@ -1,6 +1,5 @@
 const { v4 } = require('uuid');
 const db = require('../../connectors/db');
-const axios = require('axios');
 const bcrypt = require('bcrypt');
 
 function handlePublicBackendApi(app) {
@@ -23,8 +22,20 @@ function handlePublicBackendApi(app) {
       if (!email) {
         return res.status(400).json({ error: 'Email is required' });
       }
+      
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: 'Invalid email format' });
+      }
+      
       if (!password) {
         return res.status(400).json({ error: 'Password is required' });
+      }
+      
+      // Validate password strength (minimum 6 characters)
+      if (password.length < 6) {
+        return res.status(400).json({ error: 'Password must be at least 6 characters' });
       }
 
       // Check if user already exists in the system

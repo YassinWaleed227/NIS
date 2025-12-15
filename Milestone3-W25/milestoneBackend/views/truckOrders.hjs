@@ -401,7 +401,7 @@
           <li class="active"><a href="/truckOrders">Orders</a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
-          <li><a href="/"><img src="/images/logout-svgrepo-com.svg" alt="Logout" class="logout-icon"> Logout</a></li>
+          <li><a href="/logout"><img src="/images/logout-svgrepo-com.svg" alt="Logout" class="logout-icon"> Logout</a></li>
         </ul>
       </div>
     </nav>

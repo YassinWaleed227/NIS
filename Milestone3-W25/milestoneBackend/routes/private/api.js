@@ -2,16 +2,6 @@ const db = require('../../connectors/db');
 const { getUser } = require('../../utils/session');
 
 function handlePrivateBackendApi(app) {
-  // Test endpoint
-  app.get('/test', async (req, res) => {
-    try {
-      return res.status(200).json({ message: 'Successful connection' });
-    } catch (err) {
-      console.error('Test endpoint error:', err.message);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
-  });
-
   // ==================
   // 1. Create Menu Item
   // ==================
@@ -845,91 +835,6 @@ function handlePrivateBackendApi(app) {
     }
   });
 
-  // ================================
-  // 14. View Order Details (Customer)
-  // ================================
-  app.get('/api/v1/order/details/:orderId', async (req, res) => {
-    try {
-      const user = await getUser(req);
-      if (!user) {
-        return res.status(403).json({ error: 'Not authenticated' });
-      }
-
-      const orderId = req.params.orderId;
-
-      // Get order details
-      const order = await db('FoodTruck.Orders')
-        .where('orderId', orderId)
-        .join('FoodTruck.Trucks', 'Orders.truckId', 'Trucks.truckId')
-        .join('FoodTruck.Users as u', 'Orders.userId', 'u.userId')
-        .select(
-          'Orders.*',
-          'Trucks.truckName',
-          'Trucks.truckLogo',
-          'u.name as customerName'
-        )
-        .first();
-
-      if (!order) {
-        return res.status(404).json({ error: 'Order not found' });
-      }
-
-      // Verify access: customer can view their own orders, truck owner can view orders for their truck
-      if (user.role === 'customer' && order.userId !== user.userId) {
-        return res.status(403).json({ error: 'You do not have access to this order' });
-      } else if (user.role === 'truckOwner') {
-        const truck = await db('FoodTruck.Trucks')
-          .where('ownerId', user.userId)
-          .first();
-        if (!truck || truck.truckId !== order.truckId) {
-          return res.status(403).json({ error: 'You do not have access to this order' });
-        }
-      }
-
-      // Get order items
-      const items = await db('FoodTruck.OrderItems')
-        .where('orderId', orderId)
-        .join('FoodTruck.MenuItems', 'OrderItems.itemId', 'MenuItems.itemId')
-        .select(
-          'OrderItems.*',
-          'MenuItems.name as itemName',
-          'MenuItems.description',
-          'MenuItems.category'
-        );
-
-      // Map database column names to API format
-      const mappedOrder = {
-        orderId: order.orderId,
-        userId: order.userId,
-        truckId: order.truckId,
-        status: order.orderStatus,
-        totalAmount: order.totalPrice,
-        pickupTime: order.scheduledPickupTime,
-        orderDate: order.orderDate,
-        createdAt: order.createdAt,
-        truckName: order.truckName,
-        truckLogo: order.truckLogo,
-        customerName: order.customerName,
-        items: items.map(item => ({
-          orderItemId: item.orderItemId,
-          orderId: item.orderId,
-          itemId: item.itemId,
-          quantity: item.quantity,
-          price: item.price,
-          itemName: item.itemName,
-          name: item.itemName,
-          description: item.description,
-          category: item.category
-        }))
-      };
-
-      return res.status(200).json(mappedOrder);
-    } catch (err) {
-      console.error('Error fetching order details:', err);
-      return res.status(500).json({ error: 'Could not retrieve order details' });
-    }
-  });
-
   // ===============================
   // 15. View Orders for My Truck
   // ===============================
@@ -1106,6 +1011,85 @@ function handlePrivateBackendApi(app) {
     } catch (err) {
       console.error('Error fetching order details:', err);
       return res.status(500).json({ error: 'Could not retrieve order details' });
+    }
+  });
+
+  // ========================
+  // Get Order Details
+  // ========================
+  app.get('/api/v1/order/details/:orderId', async (req, res) => {
+    try {
+      const user = await getUser(req);
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const orderId = parseInt(req.params.orderId);
+      if (isNaN(orderId)) {
+        return res.status(400).json({ error: 'Invalid order ID' });
+      }
+
+      const order = await db('FoodTruck.Orders')
+        .where('FoodTruck.Orders.orderId', orderId)
+        .innerJoin('FoodTruck.Trucks', 'FoodTruck.Orders.truckId', 'FoodTruck.Trucks.truckId')
+        .innerJoin('FoodTruck.Users as u', 'FoodTruck.Orders.userId', 'u.userId')
+        .select(
+          'FoodTruck.Orders.*',
+          'FoodTruck.Trucks.truckName',
+          'FoodTruck.Trucks.truckLogo',
+          'u.name as customerName',
+          'u.email'
+        )
+        .first();
+
+      if (!order) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+
+      // Verify user can see this order
+      if (user.role === 'customer' && order.userId !== user.userId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+      if (user.role === 'truckOwner' && order.truckId !== user.truckId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
+      const items = await db('FoodTruck.OrderItems')
+        .where('FoodTruck.OrderItems.orderId', orderId)
+        .innerJoin('FoodTruck.MenuItems', 'FoodTruck.OrderItems.itemId', 'FoodTruck.MenuItems.itemId')
+        .select(
+          'FoodTruck.OrderItems.*',
+          'FoodTruck.MenuItems.name',
+          'FoodTruck.MenuItems.category'
+        );
+
+      const mappedOrder = {
+        orderId: order.orderId,
+        userId: order.userId,
+        truckId: order.truckId,
+        status: order.orderStatus,
+        totalAmount: order.totalPrice,
+        pickupTime: order.scheduledPickupTime,
+        orderDate: order.orderDate,
+        createdAt: order.createdAt,
+        truckName: order.truckName,
+        truckLogo: order.truckLogo,
+        customerName: order.customerName,
+        items: items.map(item => ({
+          orderItemId: item.orderItemId,
+          orderId: item.orderId,
+          itemId: item.itemId,
+          quantity: item.quantity,
+          price: item.price,
+          name: item.name,
+          category: item.category
+        }))
+      };
+
+      return res.status(200).json(mappedOrder);
+    } catch (err) {
+      console.error('Error fetching order details:', err);
+      return res.status(500).json({ error: 'Could not fetch order details' });
     }
   });
 

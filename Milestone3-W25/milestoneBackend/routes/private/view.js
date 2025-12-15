@@ -1,6 +1,5 @@
 const db = require('../../connectors/db');
 const { getSessionToken, getUser } = require('../../utils/session');
-const axios = require('axios');
 require('dotenv').config();
 
 function handlePrivateFrontEndView(app) {
@@ -256,16 +255,6 @@ function handlePrivateFrontEndView(app) {
         }
     });
 
-    // Testing Axios route
-    app.get('/testingAxios', async (req, res) => {
-        try {
-            const result = await axios.get(`http://localhost:${process.env.PORT || 3000}/test`);
-            return res.status(200).send(result.data);
-        } catch (error) {
-            console.error('Axios error:', error);
-            return res.status(400).send(error.message);
-        }
-    });
 }
 
 module.exports = { handlePrivateFrontEndView };   
