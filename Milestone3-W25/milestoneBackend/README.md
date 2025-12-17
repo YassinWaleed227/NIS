@@ -346,42 +346,42 @@ milestoneBackend/
 ![Login](<public/images/Screenshot (13).png>)
 
 
-Register page
-![Register Page](<Screenshot (14).png>)
+## Register page 
+![Register](<public/images/Screenshot (14).png>)
 
-Dashboard of the customer 
+## Dashboard of the customer 
 
-![alt text](<Screenshot (15).png>)
+![Dashboard](<public/images/Screenshot (15).png>)
 
-![alt text](<Screenshot (16).png>)
+![Dashboard](<public/images/Screenshot (16).png>)
 
-Browse Trucks of the customer
-![alt text](<Screenshot (17).png>)
+## Browse Trucks of the customer
+![Browse](<public/images/Screenshot (17).png>)
 
-View Menu 
-![alt text](<Screenshot (20).png>)
+## View Menu 
+![Menu](<public/images/Screenshot (20).png>)
 
-Cart Page
-![alt text](<Screenshot (21).png>)
+## Cart Page
+![Cart](<public/images/Screenshot (21).png>)
 
-Orders Page 
-![alt text](<Screenshot (31).png>)
+## Orders Page 
+![Orders](<public/images/Screenshot (31).png>)
 
-Create truck Page for first time truck owners 
+## Create truck Page for first time truck owners 
 
-![alt text](<Screenshot (32).png>)
+![First](<public/images/Screenshot (32).png>)
 
-Home Dashboard of the Truck Owner 
-![alt text](<Screenshot (33).png>)
+## Home Dashboard of the Truck Owner 
+![Home](<public/images/Screenshot (33).png>)
 
-Add Menu Item 
-![alt text](<Screenshot (34).png>)
+## Add Menu Item 
+![Browse](<public/images/Screenshot (34).png>)
 
-Menu Managment Page 
-![alt text](<Screenshot (35).png>)
+## Menu Managment Page 
+![Managment](<public/images/Screenshot (35).png>)
 
 Order Page 
-![alt text](<Screenshot (36).png>)
+![Order](<public/images/Screenshot (36).png>)
 
 
 ## 👥 Contributors
