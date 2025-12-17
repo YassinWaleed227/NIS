@@ -343,7 +343,7 @@ milestoneBackend/
 ```
 ## Login page 
 
-![Login Page](<images/Screenshot(13).png>)
+![Login](<public/images/Screenshot (13).png>)
 
 
 Register page
