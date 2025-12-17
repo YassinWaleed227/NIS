@@ -144,7 +144,7 @@ function handlePrivateFrontEndView(app) {
             if (!user || user.role !== 'truckOwner') {
                 return res.status(403).render('error', { message: 'Access denied' });
             }
-            return res.render('truckManagement', { 
+            return res.render('trucks', { 
                 name: user.name,
                 role: 'truckOwner'
             });

@@ -971,10 +971,8 @@ function handlePrivateBackendApi(app) {
         .join('FoodTruck.Users as u', 'Orders.userId', 'u.userId')
         .select(
           'Orders.*',
-          'u.firstName as firstName',
-          'u.lastName as lastName',
-          'u.email as email',
-          'u.phone as phone'
+          'u.name as name',
+          'u.email as email'
         )
         .first();
 
