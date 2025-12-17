@@ -77,7 +77,7 @@ function renderCart(items) {
 
     panel.html(html);
 
-    // Attach handlers
+
     panel.find('.qty-plus').on('click', async function () {
         const cartId = $(this).data('cart-id');
         const input = panel.find('.cart-update-qty[data-cart-id="' + cartId + '"]');

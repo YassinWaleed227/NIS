@@ -14,7 +14,6 @@ $(document).ready(function(){
           return;
       }
 
-      // Validate that name has at least first and last name
       const nameParts = name.trim().split(/\s+/);
       if(nameParts.length < 2){
           const errorAlert = $('#errorAlert');

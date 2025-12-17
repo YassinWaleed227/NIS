@@ -6,8 +6,6 @@ $(document).ready(function() {
     const truckId = params.get('truckId');
 
     if (truckId) {
-      // Customer view for a specific truck
-      // Hide the owner's add form if present
       if ($('#menuItemForm').length) {
         $('#menuItemForm').hide();
       }
@@ -33,7 +31,6 @@ $(document).ready(function() {
       return;
     }
 
-    // Owner view: load items for authenticated owner's truck
     if ($('#menuItemForm').length) {
       $('#menuItemForm').show();
     }
@@ -66,7 +63,6 @@ $(document).ready(function() {
 
     // For customer view, group by category
     if (customerView) {
-      // Group items by category (case-insensitive)
       const grouped = {};
       items.forEach(function(it) {
         const category = (it.category || 'Other').trim().toLowerCase();
@@ -82,7 +78,6 @@ $(document).ready(function() {
       });
 
       let html = '';
-      // Sort categories alphabetically
       const sortedCategories = Object.keys(grouped).sort();
       
       sortedCategories.forEach(function(category) {
@@ -114,7 +109,6 @@ $(document).ready(function() {
       
       $('#menuItemsList').html(html);
     } else {
-      // For owner view, use table layout
       let html = '<div class="table-container"><table class="table table-striped"><thead><tr><th>Item ID</th><th>Name</th><th>Description</th><th>Price</th><th>Category</th><th>Action</th>';
       html += '</tr></thead><tbody>';
       items.forEach(function(it) {
@@ -134,7 +128,6 @@ $(document).ready(function() {
       $('#menuItemsList').html(html);
     }
 
-    // Attach delete and edit button click handlers
     $('.delete-item-btn').click(function() {
       const itemId = $(this).data('item-id');
       if (confirm('Are you sure you want to delete this menu item?')) {
@@ -144,7 +137,6 @@ $(document).ready(function() {
 
     $('.edit-item-btn').click(function() {
       const itemId = $(this).data('item-id');
-      // Prompt user for new values (simple UI)
       const newName = prompt('New name (leave blank to keep current):');
       const newDescription = prompt('New description (leave blank to keep current):');
       const newPrice = prompt('New price (leave blank to keep current):');
@@ -157,13 +149,11 @@ $(document).ready(function() {
       if (newPrice !== null && newPrice !== '') body.price = newPrice;
 
       if (Object.keys(body).length === 0) {
-        // nothing to update
         return;
       }
 
       updateMenuItem(itemId, body);
     });
-    // Attach add to cart button click handlers for customers
     attachAddToCartHandlers(customerView);
   }
 
@@ -219,13 +209,11 @@ $(document).ready(function() {
   }
 
   function buildCategoryFilter(items) {
-    // Only show for customer view
     const params = new URLSearchParams(window.location.search);
     const truckId = params.get('truckId');
     
     if (!truckId) return;
 
-    // Build unique categories (case-insensitive)
     const categoriesMap = {};
     items.forEach(item => {
       if (item.category) {
@@ -243,7 +231,6 @@ $(document).ready(function() {
     }
 
     let filterHtml = '<button class="category-btn active" data-category="all">All</button>';
-    // Sort categories and create buttons
     Object.keys(categoriesMap).sort().forEach(normalizedKey => {
       const displayName = categoriesMap[normalizedKey];
       filterHtml += '<button class="category-btn" data-category="' + escapeHtml(normalizedKey) + '">' + escapeHtml(displayName) + '</button>';
@@ -251,7 +238,6 @@ $(document).ready(function() {
 
     $('#categoryFilter').html(filterHtml);
 
-    // Attach filter button handlers
     $('.category-btn').click(function() {
       $('.category-btn').removeClass('active');
       $(this).addClass('active');
@@ -291,7 +277,6 @@ $(document).ready(function() {
           } else {
             alert(data.message || 'Item added to cart successfully');
           }
-          // refresh cart UI if present
           if (window.loadCart) window.loadCart();
         } catch (err) {
           console.error(err);
@@ -301,11 +286,9 @@ $(document).ready(function() {
     }
   }
 
-  // Initial load
   if (typeof window.loadMenuItems === 'function') {
     window.loadMenuItems();
   } else {
-    // define then call
     window.loadMenuItems();
   }
 });

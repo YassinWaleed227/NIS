@@ -14,7 +14,6 @@ function handlePrivateBackendApi(app) {
 
       const { name, price, description, category } = req.body;
 
-      // Input validation
       if (!name || price === undefined) {
         return res.status(400).json({ error: 'Name and price are required' });
       }
@@ -24,7 +23,6 @@ function handlePrivateBackendApi(app) {
         return res.status(400).json({ error: 'Price must be a non-negative number' });
       }
 
-      // Create new menu item with default status and createdAt
       await db('FoodTruck.MenuItems').insert({
         truckId: user.truckId,
         name,
@@ -60,7 +58,6 @@ function handlePrivateBackendApi(app) {
         })
         .orderBy('itemId', 'asc');
 
-      // Add sequential item number - ensure itemId is present
       const itemsWithNumbers = items.map((item, index) => {
         return {
           itemId: item.itemId,
@@ -127,7 +124,6 @@ function handlePrivateBackendApi(app) {
       const { name, price, category, description } = req.body;
       const updates = {};
 
-      // Only update fields that are provided
       if (name !== undefined) updates.name = name;
       if (price !== undefined) {
         const parsedPrice = parseFloat(price);
@@ -139,7 +135,6 @@ function handlePrivateBackendApi(app) {
       if (category !== undefined) updates.category = category;
       if (description !== undefined) updates.description = description;
 
-      // Update the menu item
       const result = await db('FoodTruck.MenuItems')
         .where({
           itemId: req.params.itemId,
@@ -312,7 +307,6 @@ function handlePrivateBackendApi(app) {
         }
       }
 
-      // Add item to cart
       await db('FoodTruck.Carts').insert({
         userId: user.userId,
         itemId,
@@ -410,7 +404,6 @@ function handlePrivateBackendApi(app) {
         return res.status(400).json({ error: 'Valid quantity is required' });
       }
 
-      // Update only if the cart item belongs to the user
       const result = await db('FoodTruck.Carts')
         .where({
           cartId,
@@ -436,7 +429,6 @@ function handlePrivateBackendApi(app) {
   // =====================
   app.post('/api/v1/order/new', async (req, res) => {
     try {
-      // Get user first (before transaction) to avoid nested transaction issues
       const user = await getUser(req);
       if (!user || user.role !== 'customer') {
         return res.status(403).json({ error: 'Only customers can place orders' });
@@ -453,7 +445,6 @@ function handlePrivateBackendApi(app) {
           return res.status(400).json({ error: 'scheduledPickupTime is required' });
         }
 
-        // Get cart items using the transaction
         const cartItems = await trx('FoodTruck.Carts')
           .where({ userId: user.userId })
           .join('FoodTruck.MenuItems', 'FoodTruck.Carts.itemId', 'FoodTruck.MenuItems.itemId')
@@ -578,7 +569,6 @@ function handlePrivateBackendApi(app) {
         return res.status(400).json({ error: 'Invalid item ID' });
       }
 
-      // Soft delete by setting status to 'unavailable'
       const result = await db('FoodTruck.MenuItems')
         .where({ 
           itemId,
@@ -619,7 +609,6 @@ function handlePrivateBackendApi(app) {
         return res.status(400).json({ error: 'Truck name is required' });
       }
 
-      // Check if truck name already exists
       const existingTruck = await db('FoodTruck.Trucks')
         .where('truckName', truckName)
         .first();

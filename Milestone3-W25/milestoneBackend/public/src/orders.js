@@ -64,7 +64,6 @@ function renderOrders(orders) {
     html += '</div>';
     panel.html(html);
 
-    // Attach click handlers
     $('.view-details-btn').on('click', async function () {
         const orderId = $(this).data('order-id');
         const orderNumber = $(this).data('order-number');
@@ -93,7 +92,6 @@ async function showOrderDetails(orderId, orderNumber) {
         html += '<div style="color: #6d6d6d; font-size: 0.95em;">Pickup: ' + new Date(orderData.pickupTime).toLocaleString() + '</div>';
         html += '</div>';
 
-        // Order items
         if (orderData.items && orderData.items.length > 0) {
             html += '<div style="margin-bottom: 20px;">';
             html += '<h4 style="margin-bottom: 15px; color: #4a4a4a; font-weight: 600;">Order Items</h4>';
@@ -115,7 +113,6 @@ async function showOrderDetails(orderId, orderNumber) {
             html += '</div>';
         }
 
-        // Total
         html += '<div style="background: rgba(212, 166, 87, 0.1); padding: 15px; border-radius: 8px; text-align: right;">';
         html += '<div style="font-size: 1.3em; font-weight: 700; color: #d4a657;">Total: $' + Number(orderData.totalAmount).toFixed(2) + '</div>';
         html += '</div>';

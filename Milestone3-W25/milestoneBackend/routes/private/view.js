@@ -12,13 +12,11 @@ function handlePrivateFrontEndView(app) {
             }
             
             if (user.role === 'truckOwner') {
-                // Check if truck owner has a truck
                 const truck = await db('FoodTruck.Trucks')
                     .where('ownerId', user.userId)
                     .first();
                 
                 if (!truck) {
-                    // No truck found, redirect to first-time setup page
                     return res.redirect('/firstTimeSetup');
                 }
                 
@@ -50,7 +48,6 @@ function handlePrivateFrontEndView(app) {
                 return res.status(403).render('error', { message: 'Only truck owners can access this page' });
             }
             
-            // Check if user already has a truck
             const truck = await db('FoodTruck.Trucks')
                 .where('ownerId', user.userId)
                 .first();
@@ -165,7 +162,7 @@ function handlePrivateFrontEndView(app) {
                 return res.status(403).render('error', { message: 'Access denied' });
             }
             
-            // Check if truck owner has a truck
+
             const truck = await db('FoodTruck.Trucks')
                 .where('ownerId', user.userId)
                 .first();

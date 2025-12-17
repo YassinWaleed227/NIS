@@ -114,7 +114,6 @@ async function updateOrderStatus(orderId) {
     
     const result = await response.json();
     
-    // Show success message
     const card = statusSelect.closest('.order-card');
     const successMsg = $(`
       <div class="success-message">
@@ -131,19 +130,16 @@ async function updateOrderStatus(orderId) {
       });
     }, 3000);
     
-    // Update badge
     const badge = card.find('.order-status-badge');
     badge.removeClass().addClass(`order-status-badge status-${newStatus}`);
     badge.text(capitalizeWords(newStatus));
     
-    // Re-enable button
     btn.disabled = false;
     btn.textContent = 'Update';
   } catch (err) {
     console.error('Error updating order status:', err);
     alert('Failed to update order status. Please try again.');
     
-    // Re-enable button
     const btn = $(`.order-status-${orderId}`).next('.btn-update');
     btn.disabled = false;
     btn.textContent = 'Update';
