@@ -5,9 +5,7 @@
 **GIU Food Truck Management System** is a full-stack web application that enables customers to browse and order from food trucks, while allowing truck owners to manage their inventory, process orders, and track business operations in real-time.
 
 ### Team Members
-| Name | ID | Tutorial |
-|------|-----|----------|
-| [Your Name] | [Your ID] | [Your Tutorial] |
+	Adham tamer	16001452	Tut 12, 	Abdallah Mohamed	16001304	T12	, Ahmed wael	16002044	T12	, Martin maged	16002180	T07	, Loai syam	16001400	T7, 	Moustafa moataz	16003548	T11	, Yassin waleed	16001410	T8	, Yehia farahat	16002749	T7
 
 ---
 
@@ -343,13 +341,13 @@ milestoneBackend/
     │   └── style.less
     └── images/                  # SVG icons
 ```
-Login page 
+## Login page 
 
-![alt text](<Screenshot (13).png>)
+![Login Page](<images/Screenshot(13).png>)
 
 
 Register page
-![alt text](<Screenshot (14).png>)
+![Register Page](<Screenshot (14).png>)
 
 Dashboard of the customer 
 
