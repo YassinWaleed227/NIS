@@ -351,18 +351,18 @@ milestoneBackend/
 ```
 ## Login page 
 
-![Login](<Food Truck Full code/milestones/public/images/Screenshot (13).png>)
+![Login](<milestones/public/images/Screenshot (13).png>)
 
 
 ## Register page 
-![Register](<Food Truck Full code/milestones/public/images/Screenshot (14).png>)
+![Register](<milestones/public/images/Screenshot (14).png>)
 
 ## Dashboard of the customer 
 
-![Dashboard](<Food Truck Full code/milestones/public/images/Screenshot (15).png>)
+![Dashboard](<milestones/public/images/Screenshot (15).png>)
 
-![Dashboard](<Food Truck Full code/milestones/public/images/Screenshot (16).png>)
-
+![Dashboard](<milestones/public/images/Screenshot (16).png>)
+Food Truck Full code
 ## Browse Trucks of the customer
 ![Browse](<Food Truck Full code/milestones/public/images/Screenshot (17).png>)
 
