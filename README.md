@@ -4,16 +4,17 @@
 
 **GIU Food Truck Management System** is a full-stack web application that enables customers to browse and order from food trucks, while allowing truck owners to manage their inventory, process orders, and track business operations in real-time.
 
-### Team Members
- 
-	Adham tamer	16001452	Tut 12
-	Abdallah Mohamed	16001304	T12
- Ahmed wael	16002044	T12	 
- Martin maged	16002180	T07	
-  Loai syam	16001400	T7
- Moustafa moataz	16003548	T11
- Yassin waleed	16001410	T8	
- Yehia farahat	16002749	T7
+---
+
+### Team Members 
+- *  Adham tamer	16001452	Tut 12
+- * Abdallah Mohamed	16001304	T12
+- * Ahmed wael	16002044	T12	 
+- * Martin maged	16002180	T07	
+- *  Loai syam	16001400	T7
+- * Moustafa moataz	16003548	T11
+- * Yassin waleed	16001410	T8	
+- * Yehia farahat	16002749	T7
 
 ---
 
@@ -399,23 +400,23 @@ ERD
 
 Backend
 
-Adham tamer	16001452	Tut 12 :   linking server to database with and doing Customer Endpoints till 5
+- * Adham tamer	16001452	Tut 12 :   linking server to database with and doing Customer Endpoints till 5
 
-	Abdallah Mohamed	16001304	T12:  Customer Endpoints from  5 to 10 
+- *	Abdallah Mohamed	16001304	T12:  Customer Endpoints from  5 to 10 
 
- Ahmed wael	16002044	T12	  :  Truck Owner Endpoints till 5 
+- * Ahmed wael	16002044	T12	  :  Truck Owner Endpoints till 5 
 
- Martin maged	16002180	T07	: Truck Owner Endpoints from 5 to 10 
+- * Martin maged	16002180	T07	: Truck Owner Endpoints from 5 to 10 
 
 Frontend 
 
- Loai syam	16001400	T7 : Integrating the front end with the backend and doing the  Public Pages
+- * Loai syam	16001400	T7 : Integrating the front end with the backend and doing the  Public Pages
 
- Moustafa moataz	16003548	T11 : Customer Pages 
+- * Moustafa moataz	16003548	T11 : Customer Pages 
 
- Yassin waleed	16001410	T8	: initialzing github and doing Truck Owner Page 1  
+- * Yassin waleed	16001410	T8	: initialzing github and doing Truck Owner Page 1  
 
- Yehia farahat	16002749	T7 : ERD & SRS documents  with Truck Owner pages 2,3 and 4 
+- * Yehia farahat	16002749	T7 : ERD & SRS documents  with Truck Owner pages 2,3 and 4 
 
 
 ## 🎓 Learning Outcomes
