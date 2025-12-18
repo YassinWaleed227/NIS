@@ -351,48 +351,48 @@ milestoneBackend/
 ```
 ## Login page 
 
-![Login](<public/images/Screenshot (13).png>)
+![Login](<milestones/public/images/Screenshot (13).png>)
 
 
 ## Register page 
-![Register](<public/images/Screenshot (14).png>)
+![Register](<milestones/public/images/Screenshot (14).png>)
 
 ## Dashboard of the customer 
 
-![Dashboard](<public/images/Screenshot (15).png>)
+![Dashboard](<milestones/public/images/Screenshot (15).png>)
 
-![Dashboard](<public/images/Screenshot (16).png>)
-
+![Dashboard](<milestones/public/images/Screenshot (16).png>)
+Food Truck Full code
 ## Browse Trucks of the customer
-![Browse](<public/images/Screenshot (17).png>)
+![Browse](<Food Truck Full code/milestones/public/images/Screenshot (17).png>)
 
 ## View Menu 
-![Menu](<public/images/Screenshot (20).png>)
+![Menu](<Food Truck Full code/milestones/public/images/Screenshot (20).png>)
 
 ## Cart Page
-![Cart](<public/images/Screenshot (21).png>)
+![Cart](<Food Truck Full code/milestones/public/images/Screenshot (21).png>)
 
 ## Orders Page 
-![Orders](<public/images/Screenshot (31).png>)
+![Orders](<Food Truck Full code/milestones/public/images/Screenshot (31).png>)
 
 ## Create truck Page for first time truck owners 
 
-![First](<public/images/Screenshot (32).png>)
+![First](<Food Truck Full code/milestones/public/images/Screenshot (32).png>)
 
 ## Home Dashboard of the Truck Owner 
-![Home](<public/images/Screenshot (33).png>)
+![Home](<Food Truck Full code/milestones/public/images/Screenshot (33).png>)
 
 ## Add Menu Item 
-![Browse](<public/images/Screenshot (34).png>)
+![Browse](<Food Truck Full code/milestones/public/images/Screenshot (34).png>)
 
 ## Menu Managment Page 
-![Managment](<public/images/Screenshot (35).png>)
+![Managment](<Food Truck Full code/milestones/public/images/Screenshot (35).png>)
 
 Order Page 
-![Order](<public/images/Screenshot (36).png>)
+![Order](<Food Truck Full code/milestones/public/images/Screenshot (36).png>)
 
 ERD 
-![ERD](<public/images/Screenshot (37).png>)
+![ERD](<Food Truck Full code/milestones/public/images/Screenshot (37).png>)
 
 
 ## 👥 Contributors
